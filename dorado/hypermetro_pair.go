@@ -56,7 +56,7 @@ type HyperMetroPair struct {
 }
 
 func (c *Client) GetHyperMetroPairs(ctx context.Context, query *SearchQuery) ([]HyperMetroPair, error) {
-	spath := "HyperMetroPair"
+	spath := "/HyperMetroPair"
 
 	req, err := c.LocalDevice.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
@@ -78,7 +78,7 @@ func (c *Client) GetHyperMetroPairs(ctx context.Context, query *SearchQuery) ([]
 }
 
 func (c *Client) CreateHyperMetroPair(ctx context.Context, hyperMetroDomainId, localLunId, remoteLunId string) (*HyperMetroPair, error) {
-	spath := "HyperMetroPair"
+	spath := "/HyperMetroPair"
 	param := &HyperMetroPairParam{
 		RECONVERYPOLICY: "1",
 		DOMAINID:        hyperMetroDomainId,
@@ -112,7 +112,7 @@ func (c *Client) CreateHyperMetroPair(ctx context.Context, hyperMetroDomainId, l
 
 func (c *Client) DeleteHyperMetroPair(ctx context.Context, hyperMetroPairId string) error {
 	// must be suspend HyperMetro Pair before call this method.
-	spath := fmt.Sprintf("HyperMetroPair/%s", hyperMetroPairId)
+	spath := fmt.Sprintf("/HyperMetroPair/%s", hyperMetroPairId)
 
 	req, err := c.LocalDevice.newRequest(ctx, "DELETE", spath, nil)
 	if err != nil {
@@ -123,7 +123,7 @@ func (c *Client) DeleteHyperMetroPair(ctx context.Context, hyperMetroPairId stri
 		return errors.Wrap(err, ErrHTTPRequestDo)
 	}
 
-	var i interface{} // this method return N/A
+	var i interface{} // this endpoint return N/A
 	if err = decodeBody(resp, i); err != nil {
 		return errors.Wrap(err, ErrDecodeBody)
 	}
@@ -132,7 +132,7 @@ func (c *Client) DeleteHyperMetroPair(ctx context.Context, hyperMetroPairId stri
 }
 
 func (c *Client) SuspendHyperMetroPair(ctx context.Context, hyperMetroPairId string) error {
-	spath := "HyperMetroPair/disable_hcpair"
+	spath := "/HyperMetroPair/disable_hcpair"
 	param := struct {
 		ID   string `json:"ID"`
 		TYPE string `json:"TYPE"`
@@ -154,7 +154,38 @@ func (c *Client) SuspendHyperMetroPair(ctx context.Context, hyperMetroPairId str
 		return errors.Wrap(err, ErrHTTPRequestDo)
 	}
 
-	var i interface{} // this method return N/A
+	var i interface{} // this endpoint return N/A
+	if err = decodeBody(resp, i); err != nil {
+		return errors.Wrap(err, ErrDecodeBody)
+	}
+
+	return nil
+}
+
+func (c *Client) SyncHyperMetroPair(ctx context.Context, hyperMetroPairId string) error {
+	spath := "/HyperMetroPair/synchronize_hcpair"
+	param := struct {
+		ID   string `json:"ID"`
+		TYPE string `json:"TYPE"`
+	}{
+		ID:   hyperMetroPairId,
+		TYPE: "15361", // NOTE(whywaita): I don't know nothing. this value from OpenStack cinder-driver
+	}
+	jb, err := json.Marshal(param)
+	if err != nil {
+		return errors.Wrap(err, ErrCreatePostValue)
+	}
+
+	req, err := c.LocalDevice.newRequest(ctx, "PUT", spath, bytes.NewBuffer(jb))
+	if err != nil {
+		return errors.Wrap(err, ErrCreateRequest)
+	}
+	resp, err := c.LocalDevice.HTTPClient.Do(req)
+	if err != nil {
+		return errors.Wrap(err, ErrHTTPRequestDo)
+	}
+
+	var i interface{} // this endpoint return N/A
 	if err = decodeBody(resp, i); err != nil {
 		return errors.Wrap(err, ErrDecodeBody)
 	}
