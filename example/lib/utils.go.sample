@@ -1,0 +1,20 @@
+package lib
+
+import (
+	"context"
+
+	"github.com/whywaita/go-dorado-sdk/dorado"
+)
+
+//const (
+//	StoragePoolId =
+//)
+
+func GetClient() (*dorado.Client, error) {
+	username := "admin"
+	password := ""
+	localIps := []string{"", ""}
+	remoteIps := []string{"", ""}
+
+	return dorado.NewClient(context.Background(), localIps[0], remoteIps[0], username, password, nil)
+}
