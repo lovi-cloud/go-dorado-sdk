@@ -95,7 +95,7 @@ const (
 	LunIsNotFound = "LUN is not found"
 )
 
-func uuidToLUNName(u uuid.UUID) string {
+func encodeLunName(u uuid.UUID) string {
 	// MAX LUN name length is 31, but uuid
 	// this function binding by huawei_utils.encode_name(id) in OpenStack cinder-driver.
 	values := strings.Split(u.String(), "-")
@@ -146,7 +146,7 @@ func (d *Device) CreateLUN(ctx context.Context, u uuid.UUID, capacityGB int, sto
 	spath := "/lun"
 
 	p := ParamCreateLUN{
-		NAME:               uuidToLUNName(u),
+		NAME:               encodeLunName(u),
 		PARENTID:           storagePoolId,
 		DESCRIPTION:        "volume-" + u.String(),
 		CAPACITY:           capacityGB * CAPACITY_UNIT,
