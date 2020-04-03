@@ -199,3 +199,36 @@ func (d *Device) DeleteLUN(ctx context.Context, id string) error {
 
 	return nil
 }
+
+func (d *Device) ExpandLUN(ctx context.Context, id string, newLunSizeGb int) error {
+	spath := "/lun/expand"
+	param := struct {
+		ID       string `json:"ID"`
+		TYPE     int    `json:"TYPE"`
+		CAPACITY uint64 `json:"CAPACITY"`
+	}{
+		ID:       id,
+		TYPE:     11, // NOTE(whywaita): I don't know nothing. this value from OpenStack cinder-driver
+		CAPACITY: uint64(newLunSizeGb * CAPACITY_UNIT),
+	}
+	jb, err := json.Marshal(param)
+	if err != nil {
+		return errors.Wrap(err, ErrCreatePostValue)
+	}
+
+	req, err := d.newRequest(ctx, "PUT", spath, bytes.NewBuffer(jb))
+	if err != nil {
+		return errors.Wrap(err, ErrCreateRequest)
+	}
+	resp, err := d.HTTPClient.Do(req)
+	if err != nil {
+		return errors.Wrap(err, ErrHTTPRequestDo)
+	}
+
+	var i interface{} // this endpoint return N/A
+	if err = decodeBody(resp, i); err != nil {
+		return errors.Wrap(err, ErrDecodeBody)
+	}
+
+	return nil
+}

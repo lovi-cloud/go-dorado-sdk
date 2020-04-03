@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/whywaita/go-dorado-sdk/dorado"
+
 	uuid "github.com/satori/go.uuid"
 	"github.com/whywaita/go-dorado-sdk/example/lib"
 )
@@ -34,6 +36,21 @@ func main() {
 	}
 
 	fmt.Printf("%+v\n", hmp)
+
+	fmt.Println("expand volume")
+	err = client.ExtendVolume(ctx, hmp.ID, 30)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	hmps, err := client.GetHyperMetroPairs(ctx, dorado.CreateSearchId(hmp.ID))
+	if err != nil {
+		log.Fatal()
+	}
+
+	for _, v := range hmps {
+		fmt.Printf("%+v\n", v)
+	}
 
 	fmt.Println("delete volume")
 	err = client.DeleteVolume(ctx, hmp.ID)

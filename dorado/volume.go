@@ -70,3 +70,42 @@ func (c *Client) DeleteVolume(ctx context.Context, hyperMetroPairId string) erro
 
 	return nil
 }
+
+func (c *Client) ExtendVolume(ctx context.Context, hyperMetroPairId string, newVolumeSizeGb int) error {
+	// 1: Suspend HyperMetro Pair
+	// 2: Expand LUN
+	// 3: Re-sync HyperMetro Pair
+
+	// 1: Suspend HyperMetro Pair
+	hyperMetroPair, err := c.GetHyperMetroPairs(ctx, CreateSearchId(hyperMetroPairId))
+	if err != nil {
+		return errors.Wrap(err, "failed to get HyperMetro Pair")
+	}
+	if len(hyperMetroPair) == 0 {
+		return errors.Wrap(err, HyperMetroPairIsNotFound)
+	}
+
+	hmp := hyperMetroPair[0] // id is unique (maybe)
+	err = c.SuspendHyperMetroPair(ctx, hmp.ID)
+	if err != nil {
+		return errors.Wrap(err, "failed to suspend HyperMetroPair")
+	}
+
+	// 2: Expand LUN
+	err = c.LocalDevice.ExpandLUN(ctx, hmp.LOCALOBJID, newVolumeSizeGb)
+	if err != nil {
+		return errors.Wrap(err, "failed to expand Local LUN")
+	}
+	err = c.RemoteDevice.ExpandLUN(ctx, hmp.REMOTEOBJID, newVolumeSizeGb)
+	if err != nil {
+		return errors.Wrap(err, "failed to expand Remote LUN")
+	}
+
+	// 3: Re-sync HyperMetro Pair
+	err = c.SyncHyperMetroPair(ctx, hmp.ID)
+	if err != nil {
+		return errors.Wrap(err, "failed to re-sync HyperMetro Pair")
+	}
+
+	return nil
+}
