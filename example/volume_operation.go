@@ -25,7 +25,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	hgs, err := client.LocalDevice.GetHyperMetroDomain(ctx)
+	hgs, err := client.LocalDevice.GetHyperMetroDomains(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}

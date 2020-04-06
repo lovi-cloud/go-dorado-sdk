@@ -21,11 +21,11 @@ type HyperMetroDomain struct {
 	TYPE           int    `json:"TYPE"`
 }
 
-func (d *Device) GetHyperMetroDomain(ctx context.Context) ([]HyperMetroDomain, error) {
+func (d *Device) GetHyperMetroDomains(ctx context.Context) ([]HyperMetroDomain, error) {
 	// NOTE(whywaita): implement only GET.
 	// HyperMetroDomain is a few under our usage.
 
-	spath := "HyperMetroDomain"
+	spath := "/HyperMetroDomain"
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {

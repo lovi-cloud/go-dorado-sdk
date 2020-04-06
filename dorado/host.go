@@ -61,6 +61,26 @@ func (d *Device) GetHosts(ctx context.Context, query *SearchQuery) ([]Host, erro
 	return hosts, nil
 }
 
+func (d *Device) GetHost(ctx context.Context, hostId string) (*Host, error) {
+	spath := fmt.Sprintf("/host/%s", hostId)
+
+	req, err := d.newRequest(ctx, "GET", spath, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, ErrCreateRequest)
+	}
+	resp, err := d.HTTPClient.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+	}
+
+	host := &Host{}
+	if err = decodeBody(resp, host); err != nil {
+		return nil, errors.Wrap(err, ErrDecodeBody)
+	}
+
+	return host, nil
+}
+
 func (d *Device) CreateHost(ctx context.Context, hostname string) (*Host, error) {
 	spath := "/host"
 	param := struct {

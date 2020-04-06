@@ -24,16 +24,34 @@ func main() {
 	fmt.Printf("%+v\n", host)
 
 	fmt.Println("search host")
-	hosts, err := client.LocalDevice.GetHosts(ctx, nil)
+	hosts, err := client.LocalDevice.GetHost(ctx, host.ID)
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, v := range hosts {
-		fmt.Printf("%+v\n", v)
-	}
+	fmt.Printf("%+v\n", hosts)
 
 	fmt.Println("delete host")
 	err = client.LocalDevice.DeleteHost(ctx, host.ID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("create hostgroup")
+	hostgroup, err := client.LocalDevice.CreateHostGroup(ctx, "w-cn0001")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%+v\n", hostgroup)
+
+	fmt.Println("search hostgroup")
+	hostgroups, err := client.LocalDevice.GetHostGroup(ctx, hostgroup.ID)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%+v\n", hostgroups)
+
+	fmt.Println("delete hostgroup")
+	err = client.LocalDevice.DeleteHostGroup(ctx, hostgroup.ID)
 	if err != nil {
 		log.Fatal(err)
 	}

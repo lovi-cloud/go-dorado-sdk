@@ -26,6 +26,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Printf("%+v\n", lun)
 
 	fmt.Println("search lun")
 	luns, err := client.LocalDevice.GetLUNByName(ctx, lun.NAME)
@@ -33,8 +34,33 @@ func main() {
 		log.Fatal(err)
 	}
 
-	for _, lun := range luns {
-		fmt.Printf("%+v\n", lun)
+	for _, l := range luns {
+		fmt.Printf("%+v\n", l)
+	}
+
+	fmt.Println("create lungroup")
+	lungroup, err := client.LocalDevice.CreateLunGroup(ctx, "w-cn0001")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%+v\n", lungroup)
+
+	fmt.Println("Associate lungroup")
+	err = client.LocalDevice.AssociateLun(ctx, lungroup.ID, lun.ID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	lungroup2, err := client.LocalDevice.GetLunGroup(ctx, lungroup.ID)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%+v\n", lungroup2)
+
+	fmt.Println("DisAssociate lungroup")
+	err = client.LocalDevice.DisAssociateLun(ctx, lungroup2.ID, lun.ID)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	fmt.Println("delete lun")
@@ -42,4 +68,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	fmt.Println("delete lungroup")
+	err = client.LocalDevice.DeleteLunGroup(ctx, lungroup2.ID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("operation is done!")
 }
