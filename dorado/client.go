@@ -75,12 +75,12 @@ func NewClient(ctx context.Context, localIp, remoteIp, username, password string
 
 	localDevice, err := newDevice(ctx, localIp, username, password, httpClient)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create Device")
+		return nil, errors.Wrap(err, "failed to create Local Device")
 	}
 
 	remoteDevice, err := newDevice(ctx, remoteIp, username, password, httpClient)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create Device")
+		return nil, errors.Wrap(err, "failed to create Remote Device")
 	}
 
 	c := &Client{

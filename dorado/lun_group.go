@@ -171,3 +171,13 @@ func (d *Device) DisAssociateLun(ctx context.Context, lungroupId, lunId string) 
 
 	return nil
 }
+
+func (lg *LunGroup) IsAssociated() bool {
+	list := lg.ASSOCIATELUNIDLIST
+
+	if list != "" {
+		return true
+	}
+
+	return false
+}

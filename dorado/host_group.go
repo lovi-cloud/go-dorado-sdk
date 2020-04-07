@@ -155,21 +155,19 @@ func (d *Device) AssociateHost(ctx context.Context, hostgroupId, hostId string) 
 }
 
 func (d *Device) DisAssociateHost(ctx context.Context, hostgroupId, hostId string) error {
-	spath := "/hostgroup/associate"
-	param := AssociateParam{
-		ID:               hostgroupId,
-		ASSOCIATEOBJID:   hostId,
-		ASSOCIATEOBJTYPE: 21, // 21 is Host
-	}
-	jb, err := json.Marshal(param)
-	if err != nil {
-		return errors.Wrap(err, ErrCreatePostValue)
-	}
+	spath := "/host/associate"
 
-	req, err := d.newRequest(ctx, "DELETE", spath, bytes.NewBuffer(jb))
+	req, err := d.newRequest(ctx, "DELETE", spath, nil)
 	if err != nil {
 		return errors.Wrap(err, ErrCreateRequest)
 	}
+	q := req.URL.Query()
+	q.Add("ID", hostgroupId)
+	q.Add("ASSOCIATEOBJID", hostId)
+	q.Add("ASSOCIATEOBJTYPE", "21")
+	q.Add("TYPE", "14")
+	req.URL.RawQuery = q.Encode()
+
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
 		return errors.Wrap(err, ErrHTTPRequestDo)

@@ -30,12 +30,6 @@ func main() {
 	}
 	fmt.Printf("%+v\n", hosts)
 
-	fmt.Println("delete host")
-	err = client.LocalDevice.DeleteHost(ctx, host.ID)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	fmt.Println("create hostgroup")
 	hostgroup, err := client.LocalDevice.CreateHostGroup(ctx, "w-cn0001")
 	if err != nil {
@@ -49,6 +43,24 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Printf("%+v\n", hostgroups)
+
+	fmt.Println("associate host")
+	err = client.LocalDevice.AssociateHost(ctx, hostgroup.ID, host.ID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("disassociate host")
+	err = client.LocalDevice.DisAssociateHost(ctx, hostgroup.ID, host.ID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("delete host")
+	err = client.LocalDevice.DeleteHost(ctx, host.ID)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	fmt.Println("delete hostgroup")
 	err = client.LocalDevice.DeleteHostGroup(ctx, hostgroup.ID)
