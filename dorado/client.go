@@ -143,7 +143,7 @@ func (d *Device) newRequest(ctx context.Context, method, spath string, body io.R
 
 	token, _, err := d.getToken(ctx) // NOTE(whywaita) maybe reuse d.IBaseToken, but return 401 unauthorized.
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to getToken")
 	}
 	req.Header.Set("iBaseToken", token)
 
