@@ -6,3 +6,9 @@ const (
 	CAPACITY_UNIT   = 1024 * 1024 * 2 // 2 is hypermetro capacity NOTE(whywaita): honnmani?
 	MAX_NAME_LENGTH = 31
 )
+
+type AssociateParam struct {
+	ID               string `json:"ID"`
+	ASSOCIATEOBJID   string `json:"ASSOCIATEOBJID"`
+	ASSOCIATEOBJTYPE int    `json:"ASSOCIATEOBJTYPE"`
+}

@@ -119,12 +119,6 @@ func (d *Device) DeleteHostGroup(ctx context.Context, hostGroupId string) error 
 	return nil
 }
 
-type AssociateParam struct {
-	ID               string `json:"ID"`
-	ASSOCIATEOBJID   string `json:"ASSOCIATEOBJID"`
-	ASSOCIATEOBJTYPE int    `json:"ASSOCIATEOBJTYPE"`
-}
-
 func (d *Device) AssociateHost(ctx context.Context, hostgroupId, hostId string) error {
 	spath := "/hostgroup/associate"
 	param := AssociateParam{

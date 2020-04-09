@@ -109,3 +109,7 @@ func (c *Client) ExtendVolume(ctx context.Context, hyperMetroPairId string, newV
 
 	return nil
 }
+
+func (c *Client) AttachVolume(ctx context.Context, hyperMetroPairId, hostname string) error {
+
+}
