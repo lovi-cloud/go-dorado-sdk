@@ -28,6 +28,8 @@ type Device struct {
 	URL        *url.URL
 	HTTPClient *http.Client
 	DeviceId   string
+	Token      string
+	Jar        *cookiejar.Jar
 
 	Username string
 	Password string
@@ -99,18 +101,25 @@ func newDevice(ctx context.Context, ipStr, username, password string, httpClient
 		return nil, errors.Wrap(err, "failed to parse url")
 	}
 
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create cookiejar")
+	}
+
 	d := &Device{
 		URL:        parsedURL,
 		HTTPClient: httpClient,
 		Username:   username,
 		Password:   password,
+		Jar:        jar,
 	}
 
-	_, deviceId, err := d.getToken(ctx)
+	token, deviceId, err := d.getToken()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to getToken")
 	}
 	d.DeviceId = deviceId
+	d.Token = token
 	deviceURL := fmt.Sprintf("https://%s/deviceManager/rest/%s", ipStr, deviceId)
 	parsedDeviceURL, err := url.ParseRequestURI(deviceURL)
 	if err != nil {
@@ -125,27 +134,16 @@ func (d *Device) newRequest(ctx context.Context, method, spath string, body io.R
 	u := *d.URL
 	u.Path = path.Join(d.URL.Path, spath)
 
-	req, err := http.NewRequest(method, u.String(), body)
+	req, err := http.NewRequestWithContext(ctx, method, u.String(), body)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create new HTTP Request")
 	}
 
-	req = req.WithContext(ctx)
-
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("User-Agent", userAgent)
 
-	jar, err := cookiejar.New(nil)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create cookiejar")
-	}
-	d.HTTPClient.Jar = jar
-
-	token, _, err := d.getToken(ctx) // NOTE(whywaita) maybe reuse d.IBaseToken, but return 401 unauthorized.
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to getToken")
-	}
-	req.Header.Set("iBaseToken", token)
+	req.Header.Set("iBaseToken", d.Token)
+	d.HTTPClient.Jar = d.Jar
 
 	return req, nil
 }
@@ -155,7 +153,7 @@ type Session struct {
 	DeviceId   string `json:"deviceid"`
 }
 
-func (d *Device) getToken(ctx context.Context) (string, string, error) {
+func (d *Device) getToken() (string, string, error) {
 	spath := "/sessions"
 
 	param := struct {
@@ -172,6 +170,7 @@ func (d *Device) getToken(ctx context.Context) (string, string, error) {
 		return "", "", errors.Wrap(err, "failed to json.Marshal")
 	}
 	urlStr := d.URL.String()
+	d.HTTPClient.Jar = d.Jar
 	resp, err := d.HTTPClient.Post(urlStr+spath, "application/json", bytes.NewBuffer(jb))
 	if err != nil {
 		return "", "", errors.Wrap(err, "failed to get token request")
@@ -181,7 +180,7 @@ func (d *Device) getToken(ctx context.Context) (string, string, error) {
 	body := &Session{}
 	err = decodeBody(resp, body)
 	if err != nil {
-		return "", "", errors.Wrap(err, "failed to decode token response body")
+		return "", "", errors.Wrap(err, ErrDecodeBody)
 	}
 
 	if resp.StatusCode != http.StatusOK {
