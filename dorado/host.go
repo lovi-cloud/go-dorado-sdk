@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/pkg/errors"
 )
@@ -29,6 +30,10 @@ type Host struct {
 	RUNNINGSTATUS   string `json:"RUNNINGSTATUS"`
 	TYPE            int    `json:"TYPE"`
 }
+
+const (
+	ErrHostNotFound = "host is not found"
+)
 
 func encodeHostName(hostname string) string {
 	// this function binding by huawei_utils.encode_host_name(id) in OpenStack cinder-driver.
@@ -56,6 +61,10 @@ func (d *Device) GetHosts(ctx context.Context, query *SearchQuery) ([]Host, erro
 	hosts := []Host{}
 	if err = decodeBody(resp, &hosts); err != nil {
 		return nil, errors.Wrap(err, ErrDecodeBody)
+	}
+
+	if len(hosts) == 0 {
+		return nil, errors.New(ErrHostNotFound)
 	}
 
 	return hosts, nil
@@ -90,7 +99,7 @@ func (d *Device) CreateHost(ctx context.Context, hostname string) (*Host, error)
 		DESCRIPTION     string `json:"DESCRIPTION"`
 	}{
 		NAME:            encodeHostName(hostname),
-		TYPE:            "21", // NOTE(whywaita): I don't know nothing. this value from OpenStack cinder-driver
+		TYPE:            strconv.Itoa(TypeHost),
 		OPERATIONSYSTEM: "0",
 		DESCRIPTION:     hostname,
 	}

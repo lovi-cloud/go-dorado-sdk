@@ -106,14 +106,6 @@ func encodeLunName(u uuid.UUID) string {
 	return name
 }
 
-func (d *Device) GetLUNByName(ctx context.Context, name string) ([]LUN, error) {
-	return d.GetLUNs(ctx, CreateSearchName(name))
-}
-
-func (d *Device) GetLUNById(ctx context.Context, id string) ([]LUN, error) {
-	return d.GetLUNs(ctx, CreateSearchId(id))
-}
-
 func (d *Device) GetLUNs(ctx context.Context, query *SearchQuery) ([]LUN, error) {
 	spath := "/lun"
 
@@ -139,6 +131,26 @@ func (d *Device) GetLUNs(ctx context.Context, query *SearchQuery) ([]LUN, error)
 	}
 
 	return luns, nil
+}
+
+func (d *Device) GetLUN(ctx context.Context, lunId string) (*LUN, error) {
+	spath := fmt.Sprintf("/lun/%s", lunId)
+
+	req, err := d.newRequest(ctx, "GET", spath, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, ErrCreateRequest)
+	}
+	resp, err := d.HTTPClient.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+	}
+
+	lun := &LUN{}
+	if err = decodeBody(resp, lun); err != nil {
+		return nil, errors.Wrap(err, ErrDecodeBody)
+	}
+
+	return lun, nil
 }
 
 func (d *Device) CreateLUN(ctx context.Context, u uuid.UUID, capacityGB int, storagePoolId string) (*LUN, error) {
@@ -208,7 +220,7 @@ func (d *Device) ExpandLUN(ctx context.Context, id string, newLunSizeGb int) err
 		CAPACITY uint64 `json:"CAPACITY"`
 	}{
 		ID:       id,
-		TYPE:     11, // NOTE(whywaita): I don't know nothing. this value from OpenStack cinder-driver
+		TYPE:     TypeLUN,
 		CAPACITY: uint64(newLunSizeGb * CAPACITY_UNIT),
 	}
 	jb, err := json.Marshal(param)

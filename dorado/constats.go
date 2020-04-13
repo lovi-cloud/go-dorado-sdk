@@ -7,8 +7,20 @@ const (
 	MAX_NAME_LENGTH = 31
 )
 
+const (
+	TypeHost           = 21
+	TypeHostGroup      = 14
+	TypeLUN            = 11
+	TypeLUNGroup       = 256
+	TypePortGroup      = 257
+	TypeInitiator      = 222
+	TypeMappingView    = 245
+	TypeHyperMetroPair = 15361
+)
+
 type AssociateParam struct {
-	ID               string `json:"ID"`
-	ASSOCIATEOBJID   string `json:"ASSOCIATEOBJID"`
-	ASSOCIATEOBJTYPE int    `json:"ASSOCIATEOBJTYPE"`
+	ID               string `json:"ID,omitempty"`
+	TYPE             string `json:"TYPE,omitempty"`
+	ASSOCIATEOBJID   string `json:"ASSOCIATEOBJID,omitempty"`
+	ASSOCIATEOBJTYPE int    `json:"ASSOCIATEOBJTYPE,omitempty"`
 }

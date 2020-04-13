@@ -89,8 +89,6 @@ type StoragePools struct {
 }
 
 func (d *Device) GetStoragePools(ctx context.Context) ([]StoragePools, error) {
-	storagePools := []StoragePools{}
-
 	spath := "/storagepool"
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
@@ -101,6 +99,7 @@ func (d *Device) GetStoragePools(ctx context.Context) ([]StoragePools, error) {
 		return nil, errors.Wrap(err, ErrHTTPRequestDo)
 	}
 
+	storagePools := []StoragePools{}
 	err = decodeBody(resp, &storagePools)
 	if err != nil {
 		return nil, errors.Wrap(err, ErrDecodeBody)

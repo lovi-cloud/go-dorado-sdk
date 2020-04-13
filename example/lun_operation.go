@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/whywaita/go-dorado-sdk/dorado"
+
 	uuid "github.com/satori/go.uuid"
 	"github.com/whywaita/go-dorado-sdk/example/lib"
 )
@@ -29,7 +31,7 @@ func main() {
 	fmt.Printf("%+v\n", lun)
 
 	fmt.Println("search lun")
-	luns, err := client.LocalDevice.GetLUNByName(ctx, lun.NAME)
+	luns, err := client.LocalDevice.GetLUNs(ctx, dorado.NewSearchQueryName(lun.NAME))
 	if err != nil {
 		log.Fatal(err)
 	}

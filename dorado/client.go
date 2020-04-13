@@ -21,6 +21,8 @@ type Client struct {
 	LocalDevice  *Device
 	RemoteDevice *Device
 
+	PortGroupName string
+
 	Logger *log.Logger
 }
 
@@ -54,7 +56,7 @@ const (
 	DefaultDeviceId = "xx"
 )
 
-func NewClient(ctx context.Context, localIp, remoteIp, username, password string, logger *log.Logger) (*Client, error) {
+func NewClient(localIp, remoteIp, username, password, portgroupName string, logger *log.Logger) (*Client, error) {
 	// validate input value
 	if len(username) == 0 {
 		return nil, errors.New("username is required")
@@ -75,26 +77,27 @@ func NewClient(ctx context.Context, localIp, remoteIp, username, password string
 	transport.TLSClientConfig = &tlsConfig
 	httpClient := &http.Client{Transport: &transport}
 
-	localDevice, err := newDevice(ctx, localIp, username, password, httpClient)
+	localDevice, err := newDevice(localIp, username, password, httpClient)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create Local Device")
 	}
 
-	remoteDevice, err := newDevice(ctx, remoteIp, username, password, httpClient)
+	remoteDevice, err := newDevice(remoteIp, username, password, httpClient)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create Remote Device")
 	}
 
 	c := &Client{
-		LocalDevice:  localDevice,
-		RemoteDevice: remoteDevice,
-		Logger:       logger,
+		LocalDevice:   localDevice,
+		RemoteDevice:  remoteDevice,
+		PortGroupName: portgroupName,
+		Logger:        logger,
 	}
 
 	return c, nil
 }
 
-func newDevice(ctx context.Context, ipStr, username, password string, httpClient *http.Client) (*Device, error) {
+func newDevice(ipStr, username, password string, httpClient *http.Client) (*Device, error) {
 	urlStr := fmt.Sprintf("https://%s/deviceManager/rest/%s", ipStr, DefaultDeviceId)
 	parsedURL, err := url.ParseRequestURI(urlStr)
 	if err != nil {

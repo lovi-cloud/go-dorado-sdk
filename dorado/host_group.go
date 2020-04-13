@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/pkg/errors"
 )
@@ -91,12 +92,12 @@ func (d *Device) CreateHostGroup(ctx context.Context, hostname string) (*HostGro
 		return nil, errors.Wrap(err, ErrHTTPRequestDo)
 	}
 
-	hg := HostGroup{}
-	if err = decodeBody(resp, &hg); err != nil {
+	hg := &HostGroup{}
+	if err = decodeBody(resp, hg); err != nil {
 		return nil, errors.Wrap(err, ErrDecodeBody)
 	}
 
-	return &hg, nil
+	return hg, nil
 }
 
 func (d *Device) DeleteHostGroup(ctx context.Context, hostGroupId string) error {
@@ -112,7 +113,7 @@ func (d *Device) DeleteHostGroup(ctx context.Context, hostGroupId string) error 
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, &i); err != nil {
+	if err = decodeBody(resp, i); err != nil {
 		return errors.Wrap(err, ErrDecodeBody)
 	}
 
@@ -124,8 +125,9 @@ func (d *Device) AssociateHost(ctx context.Context, hostgroupId, hostId string) 
 	param := AssociateParam{
 		ID:               hostgroupId,
 		ASSOCIATEOBJID:   hostId,
-		ASSOCIATEOBJTYPE: 21, // 21 is Host
+		ASSOCIATEOBJTYPE: TypeHost,
 	}
+	fmt.Printf("%+v\n", param)
 	jb, err := json.Marshal(param)
 	if err != nil {
 		return errors.Wrap(err, ErrCreatePostValue)
@@ -141,7 +143,7 @@ func (d *Device) AssociateHost(ctx context.Context, hostgroupId, hostId string) 
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, &i); err != nil {
+	if err = decodeBody(resp, i); err != nil {
 		return errors.Wrap(err, ErrDecodeBody)
 	}
 
@@ -158,8 +160,8 @@ func (d *Device) DisAssociateHost(ctx context.Context, hostgroupId, hostId strin
 	q := req.URL.Query()
 	q.Add("ID", hostgroupId)
 	q.Add("ASSOCIATEOBJID", hostId)
-	q.Add("ASSOCIATEOBJTYPE", "21")
-	q.Add("TYPE", "14")
+	q.Add("ASSOCIATEOBJTYPE", strconv.Itoa(TypeHost))
+	q.Add("TYPE", strconv.Itoa(TypeHostGroup))
 	req.URL.RawQuery = q.Encode()
 
 	resp, err := d.HTTPClient.Do(req)
@@ -168,30 +170,30 @@ func (d *Device) DisAssociateHost(ctx context.Context, hostgroupId, hostId strin
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, &i); err != nil {
+	if err = decodeBody(resp, i); err != nil {
 		return errors.Wrap(err, ErrDecodeBody)
 	}
 
 	return nil
 }
 
-func (d *Device) CreateHostGroupWithHost(ctx context.Context, hostname string) (*HostGroup, error) {
+func (d *Device) CreateHostGroupWithHost(ctx context.Context, hostname string) (*HostGroup, *Host, error) {
 	host, err := d.CreateHost(ctx, hostname)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create Host")
+		return nil, nil, errors.Wrap(err, "failed to create Host")
 	}
 
 	hostgroup, err := d.CreateHostGroup(ctx, hostname)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create hostgroup")
+		return nil, nil, errors.Wrap(err, "failed to create hostgroup")
 	}
 
 	err = d.AssociateHost(ctx, hostgroup.ID, host.ID)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to associate to hostgroup")
+		return nil, nil, errors.Wrap(err, "failed to associate to hostgroup")
 	}
 
-	return hostgroup, nil
+	return hostgroup, host, nil
 }
 
 func (d *Device) DeleteHostGroupWithHost(ctx context.Context, hostgroupId string) error {
@@ -199,7 +201,7 @@ func (d *Device) DeleteHostGroupWithHost(ctx context.Context, hostgroupId string
 	if err != nil {
 		return errors.Wrap(err, "failed to search hostgroup by ID")
 	}
-	hosts, err := d.GetHosts(ctx, CreateSearchName(hostgroup.NAME))
+	hosts, err := d.GetHosts(ctx, NewSearchQueryHostname(hostgroup.NAME))
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("failed to search host that name is %s", hostgroup.NAME))
 	}
@@ -222,4 +224,36 @@ func (d *Device) DeleteHostGroupWithHost(ctx context.Context, hostgroupId string
 	}
 
 	return nil
+}
+
+func (d *Device) GetHostGroupForce(ctx context.Context, hostname string) (*HostGroup, *Host, error) {
+	// GetHostGroup and CreateHostGroup if not found.
+	hostgroups, err := d.GetHostGroups(ctx, NewSearchQueryHostname(hostname))
+	if err != nil {
+		if err.Error() == ErrHostGroupNotFound {
+			return d.CreateHostGroupWithHost(ctx, hostname)
+		}
+
+		// Unexpected Error
+		return nil, nil, errors.Wrap(err, "failed to get hostgroup")
+	}
+
+	if len(hostgroups) != 1 {
+		// hostgroup is must be unique
+		return nil, nil, errors.Wrap(err, "fount multiple hostgroup in same hostname")
+	}
+	hostgroup := hostgroups[0]
+
+	hosts, err := d.GetHosts(ctx, NewSearchQueryHostname(hostname))
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to get host")
+	}
+
+	// host : hostgroup is 1:1, if get not only one, data is incorrect!
+	if len(hosts) != 1 {
+		return nil, nil, errors.Wrap(err, "found multiple hosts associated hostgroup")
+	}
+	host := hosts[0]
+
+	return &hostgroup, &host, nil
 }

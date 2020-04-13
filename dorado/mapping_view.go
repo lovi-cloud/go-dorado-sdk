@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/pkg/errors"
 )
@@ -68,14 +69,14 @@ func (d *Device) GetMappingView(ctx context.Context, mappingviewId string) (*Map
 	return mappingview, nil
 }
 
-func (d *Device) CreateMappingView(ctx context.Context, name string) (*MappingView, error) {
+func (d *Device) CreateMappingView(ctx context.Context, hostname string) (*MappingView, error) {
 	spath := "/mappingview"
 	param := struct {
 		TYPE string `json:"TYPE"`
 		NAME string `json:"NAME"`
 	}{
-		TYPE: "245",
-		NAME: name,
+		TYPE: strconv.Itoa(TypeMappingView),
+		NAME: encodeHostName(hostname),
 	}
 	jb, err := json.Marshal(param)
 	if err != nil {
@@ -112,7 +113,7 @@ func (d *Device) DeleteMappingView(ctx context.Context, mappingviewId string) er
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, &i); err != nil {
+	if err = decodeBody(resp, i); err != nil {
 		return errors.Wrap(err, ErrDecodeBody)
 	}
 
@@ -162,6 +163,53 @@ func (d *Device) DisAssociateMappingView(ctx context.Context, param AssociatePar
 	var i interface{} // this endpoint return N/A
 	if err = decodeBody(resp, i); err != nil {
 		return errors.Wrap(err, ErrDecodeBody)
+	}
+
+	return nil
+}
+
+func (d *Device) GetMappingViewForce(ctx context.Context, hostname string) (*MappingView, error) {
+	mappingviews, err := d.GetMappingViews(ctx, NewSearchQueryHostname(hostname))
+	if err != nil {
+		if err.Error() == ErrMappingViewNotFound {
+			return d.CreateMappingView(ctx, hostname)
+		}
+
+		return nil, errors.Wrap(err, "failed to get mapping view")
+	}
+
+	if len(mappingviews) != 1 {
+		return nil, errors.New("fount multiple mapping view in same hostname")
+	}
+
+	return &mappingviews[0], nil
+}
+
+func (d *Device) DoMapping(ctx context.Context, mappingviewId, hostgroupId, lungroupId, portgroupId string) error {
+	param := AssociateParam{
+		ID:   mappingviewId,
+		TYPE: strconv.Itoa(TypeMappingView),
+	}
+
+	param.ASSOCIATEOBJTYPE = TypeHostGroup
+	param.ASSOCIATEOBJID = hostgroupId
+	err := d.AssociateMappingView(ctx, param)
+	if err != nil {
+		return errors.Wrap(err, "failed to associate hostgroup")
+	}
+
+	param.ASSOCIATEOBJTYPE = TypeLUNGroup
+	param.ASSOCIATEOBJID = lungroupId
+	err = d.AssociateMappingView(ctx, param)
+	if err != nil {
+		return errors.Wrap(err, "failed to associate lungroup")
+	}
+
+	param.ASSOCIATEOBJTYPE = TypePortGroup
+	param.ASSOCIATEOBJID = portgroupId
+	err = d.AssociateMappingView(ctx, param)
+	if err != nil {
+		return errors.Wrap(err, "failed to associate portgroup")
 	}
 
 	return nil

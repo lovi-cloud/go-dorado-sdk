@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/pkg/errors"
 )
@@ -19,6 +20,10 @@ type LunGroup struct {
 	TYPE               int    `json:"TYPE"`
 	ASSOCIATELUNIDLIST string `json:"ASSOCIATELUNIDLIST"`
 }
+
+const (
+	ErrLunGroupNotFound = "LUN Group is not found"
+)
 
 func (d *Device) GetLunGroups(ctx context.Context, query *SearchQuery) ([]LunGroup, error) {
 	spath := "/lungroup"
@@ -36,6 +41,10 @@ func (d *Device) GetLunGroups(ctx context.Context, query *SearchQuery) ([]LunGro
 	lunGroups := []LunGroup{}
 	if err = decodeBody(resp, &lunGroups); err != nil {
 		return nil, errors.Wrap(err, ErrDecodeBody)
+	}
+
+	if len(lunGroups) == 0 {
+		return nil, errors.New(ErrLunGroupNotFound)
 	}
 
 	return lunGroups, nil
@@ -107,7 +116,7 @@ func (d *Device) DeleteLunGroup(ctx context.Context, lungroupId string) error {
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, &i); err != nil {
+	if err = decodeBody(resp, i); err != nil {
 		return errors.Wrap(err, ErrDecodeBody)
 	}
 
@@ -119,7 +128,7 @@ func (d *Device) AssociateLun(ctx context.Context, lungroupId, lunId string) err
 	param := AssociateParam{
 		ID:               lungroupId,
 		ASSOCIATEOBJID:   lunId,
-		ASSOCIATEOBJTYPE: 11, // 11 is LUN
+		ASSOCIATEOBJTYPE: TypeLUN,
 	}
 	jb, err := json.Marshal(param)
 	if err != nil {
@@ -136,7 +145,7 @@ func (d *Device) AssociateLun(ctx context.Context, lungroupId, lunId string) err
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, &i); err != nil {
+	if err = decodeBody(resp, i); err != nil {
 		return errors.Wrap(err, ErrDecodeBody)
 	}
 
@@ -148,7 +157,7 @@ func (d *Device) DisAssociateLun(ctx context.Context, lungroupId, lunId string) 
 	param := AssociateParam{
 		ID:               lungroupId,
 		ASSOCIATEOBJID:   lunId,
-		ASSOCIATEOBJTYPE: 11, // 11 is LUN
+		ASSOCIATEOBJTYPE: TypeLUN,
 	}
 	jb, err := json.Marshal(param)
 	if err != nil {
@@ -165,11 +174,25 @@ func (d *Device) DisAssociateLun(ctx context.Context, lungroupId, lunId string) 
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, &i); err != nil {
+	if err = decodeBody(resp, i); err != nil {
 		return errors.Wrap(err, ErrDecodeBody)
 	}
 
 	return nil
+}
+
+func (d *Device) GetLunGroupByLunId(ctx context.Context, lunId string) (*LunGroup, error) {
+	query := &SearchQuery{
+		AssociateObjType: strconv.Itoa(TypeLUN),
+		AssociateObjID:   lunId,
+	}
+
+	lungroups, err := d.GetLunGroups(ctx, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get lun group")
+	}
+
+	return &lungroups[0], nil
 }
 
 func (lg *LunGroup) IsAssociated() bool {
@@ -180,4 +203,21 @@ func (lg *LunGroup) IsAssociated() bool {
 	}
 
 	return false
+}
+
+func (d *Device) GetLunGroupForce(ctx context.Context, hostname string) (*LunGroup, error) {
+	lungroups, err := d.GetLunGroups(ctx, NewSearchQueryHostname(hostname))
+	if err != nil {
+		if err.Error() == ErrLunGroupNotFound {
+			return d.CreateLunGroup(ctx, hostname)
+		}
+
+		return nil, errors.Wrap(err, "failed to get lungroup")
+	}
+
+	if len(lungroups) != 1 {
+		return nil, errors.New("found multiple lungroup in same hostname")
+	}
+
+	return &lungroups[0], nil
 }

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/pkg/errors"
 )
@@ -26,6 +27,11 @@ type Initiator struct {
 	PARENTTYPE      int    `json:"PARENTTYPE,omitempty"`
 }
 
+const (
+	ErrInitiatorNotFound = "Initiator is not found"
+)
+
+// NOTE(whywaita): maybe not working search initiators by iqn.
 func (d *Device) GetInitiators(ctx context.Context, query *SearchQuery) ([]Initiator, error) {
 	spath := "/iscsi_initiator"
 
@@ -40,15 +46,19 @@ func (d *Device) GetInitiators(ctx context.Context, query *SearchQuery) ([]Initi
 	}
 
 	initiators := []Initiator{}
-	if err = decodeBody(resp, &initiators); err != nil {
+	if err = decodeBody(resp, initiators); err != nil {
 		return nil, errors.Wrap(err, ErrDecodeBody)
+	}
+
+	if len(initiators) == 0 {
+		return nil, errors.New(ErrInitiatorNotFound)
 	}
 
 	return initiators, nil
 }
 
-func (d *Device) GetInitiator(ctx context.Context, initiatorId string) (*Initiator, error) {
-	spath := fmt.Sprintf("/iscsi_initiator/%s", initiatorId)
+func (d *Device) GetInitiator(ctx context.Context, iqn string) (*Initiator, error) {
+	spath := fmt.Sprintf("/iscsi_initiator/%s", iqn)
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
@@ -75,7 +85,7 @@ func (d *Device) CreateInitiator(ctx context.Context, iqn string) (*Initiator, e
 		ID      string `json:"ID"`
 	}{
 		USECHAP: "false",
-		TYPE:    "222",
+		TYPE:    strconv.Itoa(TypeInitiator),
 		ID:      iqn,
 	}
 	jb, err := json.Marshal(param)
@@ -113,20 +123,29 @@ func (d *Device) DeleteInitiator(ctx context.Context, iqn string) error {
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, &i); err != nil {
+	if err = decodeBody(resp, i); err != nil {
 		return errors.Wrap(err, ErrDecodeBody)
 	}
 
 	return nil
 }
 
-func (d *Device) UpdateInitiator(ctx context.Context, iqn string, initiatorParam Initiator) (*Initiator, error) {
+type UpdateInitiatorParam struct {
+	USECHAP    string `json:"USECHAP"`
+	PARENTTYPE string `json:"PARENTTYPE"`
+	TYPE       string `json:"TYPE"`
+	ID         string `json:"ID"`
+	PARENTID   string `json:"PARENTID"`
+}
+
+func (d *Device) UpdateInitiator(ctx context.Context, iqn string, initiatorParam UpdateInitiatorParam) (*Initiator, error) {
 	spath := fmt.Sprintf("/iscsi_initiator/%s", iqn)
 
 	jb, err := json.Marshal(initiatorParam)
 	if err != nil {
 		return nil, errors.Wrap(err, ErrCreatePostValue)
 	}
+
 	req, err := d.newRequest(ctx, "PUT", spath, bytes.NewBuffer(jb))
 	if err != nil {
 		return nil, errors.Wrap(err, ErrCreateRequest)
@@ -142,4 +161,17 @@ func (d *Device) UpdateInitiator(ctx context.Context, iqn string, initiatorParam
 	}
 
 	return i, nil
+}
+
+func (d *Device) GetInitiatorForce(ctx context.Context, iqn string) (*Initiator, error) {
+	initiators, err := d.GetInitiator(ctx, iqn)
+	if err != nil {
+		if err.Error() == ErrInitiatorNotFound {
+			return d.CreateInitiator(ctx, iqn)
+		}
+
+		return nil, errors.Wrap(err, "failed to get initiators")
+	}
+
+	return initiators, nil
 }

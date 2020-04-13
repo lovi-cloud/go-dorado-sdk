@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/pkg/errors"
 )
@@ -62,6 +63,11 @@ func (c *Client) GetHyperMetroPairs(ctx context.Context, query *SearchQuery) ([]
 	if err != nil {
 		return nil, errors.Wrap(err, ErrCreateRequest)
 	}
+	if query == nil {
+		query = &SearchQuery{
+			Range: "[0-4095]", // NOTE(whywaita): if set range, response become fast and not duplicated
+		}
+	}
 	req = AddSearchQuery(req, query)
 
 	resp, err := c.LocalDevice.HTTPClient.Do(req)
@@ -75,6 +81,26 @@ func (c *Client) GetHyperMetroPairs(ctx context.Context, query *SearchQuery) ([]
 	}
 
 	return hyperMetroPairs, nil
+}
+
+func (c *Client) GetHyperMetroPair(ctx context.Context, hyperMetroPairId string) (*HyperMetroPair, error) {
+	spath := fmt.Sprintf("/HyperMetroPair/%s", hyperMetroPairId)
+
+	req, err := c.LocalDevice.newRequest(ctx, "GET", spath, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, ErrCreateRequest)
+	}
+	resp, err := c.LocalDevice.HTTPClient.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+	}
+
+	hyperMetroPair := &HyperMetroPair{}
+	if err = decodeBody(resp, hyperMetroPair); err != nil {
+		return nil, errors.Wrap(err, ErrDecodeBody)
+	}
+
+	return hyperMetroPair, nil
 }
 
 func (c *Client) CreateHyperMetroPair(ctx context.Context, hyperMetroDomainId, localLunId, remoteLunId string) (*HyperMetroPair, error) {
@@ -138,7 +164,7 @@ func (c *Client) SuspendHyperMetroPair(ctx context.Context, hyperMetroPairId str
 		TYPE string `json:"TYPE"`
 	}{
 		ID:   hyperMetroPairId,
-		TYPE: "15361", // NOTE(whywaita): I don't know nothing. this value from OpenStack cinder-driver
+		TYPE: strconv.Itoa(TypeHyperMetroPair),
 	}
 	jb, err := json.Marshal(param)
 	if err != nil {
@@ -169,7 +195,7 @@ func (c *Client) SyncHyperMetroPair(ctx context.Context, hyperMetroPairId string
 		TYPE string `json:"TYPE"`
 	}{
 		ID:   hyperMetroPairId,
-		TYPE: "15361", // NOTE(whywaita): I don't know nothing. this value from OpenStack cinder-driver
+		TYPE: strconv.Itoa(TypeHyperMetroPair),
 	}
 	jb, err := json.Marshal(param)
 	if err != nil {

@@ -1,11 +1,16 @@
 package dorado
 
-import "net/http"
+import (
+	"net/http"
+)
 
 type SearchQuery struct {
 	Filter         string
 	Range          string
 	timeConversion TimeConversion
+
+	AssociateObjType string
+	AssociateObjID   string
 }
 
 type TimeConversion int
@@ -30,13 +35,19 @@ func ToFilter(param, value string) string {
 	return param + "::" + value
 }
 
-func CreateSearchName(name string) *SearchQuery {
+func NewSearchQueryHostname(hostname string) *SearchQuery {
+	return &SearchQuery{
+		Filter: ToFilter("NAME", encodeHostName(hostname)),
+	}
+}
+
+func NewSearchQueryName(name string) *SearchQuery {
 	return &SearchQuery{
 		Filter: ToFilter("NAME", name),
 	}
 }
 
-func CreateSearchId(id string) *SearchQuery {
+func NewSearchQueryId(id string) *SearchQuery {
 	return &SearchQuery{
 		Filter: ToFilter("ID", id),
 	}
@@ -57,6 +68,13 @@ func AddSearchQuery(req *http.Request, query *SearchQuery) *http.Request {
 	}
 	if query.timeConversion != UTC {
 		q.Add("timeConversion", query.timeConversion.String())
+	}
+
+	if query.AssociateObjType != "" {
+		q.Add("ASSOCIATEOBJTYPE", query.AssociateObjType)
+	}
+	if query.AssociateObjID != "" {
+		q.Add("ASSOCIATEOBJID", query.AssociateObjID)
 	}
 
 	req.URL.RawQuery = q.Encode()
