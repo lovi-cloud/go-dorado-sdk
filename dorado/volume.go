@@ -38,19 +38,9 @@ func (c *Client) DeleteVolume(ctx context.Context, hyperMetroPairId string) erro
 	// 2: delete LUN Group Associate
 	// 3: delete LUN
 
-	// 1: delete HyperMetro Pair
 	hmp, err := c.GetHyperMetroPair(ctx, hyperMetroPairId)
 	if err != nil {
 		return errors.Wrap(err, "failed to get HyperMetro Pair")
-	}
-
-	err = c.SuspendHyperMetroPair(ctx, hmp.ID)
-	if err != nil {
-		return errors.Wrap(err, "failed to suspend HyperMetroPair")
-	}
-	err = c.DeleteHyperMetroPair(ctx, hmp.ID)
-	if err != nil {
-		return errors.Wrap(err, "failed to delete HyperMetroPair")
 	}
 
 	// 2: delete LUN Group Associate
@@ -82,6 +72,18 @@ func (c *Client) DeleteVolume(ctx context.Context, hyperMetroPairId string) erro
 		if err != nil {
 			return errors.Wrap(err, "failed to disassociate remote lun")
 		}
+	}
+
+	// 1: delete HyperMetro Pair
+	if hmp.RUNNINGSTATUS != strconv.Itoa(StatusPause) {
+		err = c.SuspendHyperMetroPair(ctx, hmp.ID)
+		if err != nil {
+			return errors.Wrap(err, "failed to suspend HyperMetroPair")
+		}
+	}
+	err = c.DeleteHyperMetroPair(ctx, hmp.ID)
+	if err != nil {
+		return errors.Wrap(err, "failed to delete HyperMetroPair")
 	}
 
 	// 3: delete LUN
@@ -196,9 +198,9 @@ func (d *Device) AttachVolume(ctx context.Context, portgroupName, hostname, iqn,
 		return errors.Wrap(err, "failed to get mappingview")
 	}
 
-	err = d.DoMapping(ctx, mappingview.ID, hostgroup.ID, lungroup.ID, portgroup.ID)
+	err = d.DoMapping(ctx, mappingview, hostgroup, lungroup, portgroup.ID)
 	if err != nil {
-		return errors.Wrap(err, "failed associate object to mappingview")
+		return errors.Wrap(err, "failed to associate object to mappingview")
 	}
 
 	return nil

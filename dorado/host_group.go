@@ -255,5 +255,12 @@ func (d *Device) GetHostGroupForce(ctx context.Context, hostname string) (*HostG
 	}
 	host := hosts[0]
 
+	if host.ISADD2HOSTGROUP == "false" {
+		err = d.AssociateHost(ctx, hostgroup.ID, host.ID)
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "failed to associate host to hostgroup")
+		}
+	}
+
 	return &hostgroup, &host, nil
 }

@@ -166,7 +166,7 @@ func (d *Device) UpdateInitiator(ctx context.Context, iqn string, initiatorParam
 func (d *Device) GetInitiatorForce(ctx context.Context, iqn string) (*Initiator, error) {
 	initiators, err := d.GetInitiator(ctx, iqn)
 	if err != nil {
-		if err.Error() == ErrInitiatorNotFound {
+		if err.Error() == ErrInitiatorNotFound { // TODO(whywaita): can't fail over
 			return d.CreateInitiator(ctx, iqn)
 		}
 

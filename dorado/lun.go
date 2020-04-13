@@ -92,7 +92,7 @@ type ParamCreateLUN struct {
 }
 
 const (
-	LunIsNotFound = "LUN is not found"
+	ErrLunNotFound = "LUN is not found"
 )
 
 func encodeLunName(u uuid.UUID) string {
@@ -127,7 +127,7 @@ func (d *Device) GetLUNs(ctx context.Context, query *SearchQuery) ([]LUN, error)
 	}
 
 	if len(luns) == 0 {
-		return nil, errors.New(LunIsNotFound)
+		return nil, errors.New(ErrLunNotFound)
 	}
 
 	return luns, nil
@@ -243,4 +243,29 @@ func (d *Device) ExpandLUN(ctx context.Context, id string, newLunSizeGb int) err
 	}
 
 	return nil
+}
+
+func (d *Device) GetAssociateLUNs(ctx context.Context, query *SearchQuery) ([]LUN, error) {
+	spath := "/lun/associate"
+
+	req, err := d.newRequest(ctx, "GET", spath, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, ErrCreateRequest)
+	}
+	req = AddSearchQuery(req, query)
+	resp, err := d.HTTPClient.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+	}
+
+	luns := []LUN{}
+	if err = decodeBody(resp, luns); err != nil {
+		return nil, errors.Wrap(err, ErrDecodeBody)
+	}
+
+	if len(luns) == 0 {
+		return nil, errors.New(ErrLunNotFound)
+	}
+
+	return luns, nil
 }

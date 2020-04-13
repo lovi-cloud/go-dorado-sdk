@@ -11,6 +11,7 @@ type SearchQuery struct {
 
 	AssociateObjType string
 	AssociateObjID   string
+	Type             string
 }
 
 type TimeConversion int
@@ -75,6 +76,9 @@ func AddSearchQuery(req *http.Request, query *SearchQuery) *http.Request {
 	}
 	if query.AssociateObjID != "" {
 		q.Add("ASSOCIATEOBJID", query.AssociateObjID)
+	}
+	if query.Type != "" {
+		q.Add("TYPE", query.Type)
 	}
 
 	req.URL.RawQuery = q.Encode()
