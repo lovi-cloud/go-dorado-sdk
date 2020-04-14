@@ -48,7 +48,42 @@ func attachVolume(client *dorado.Client, ctx context.Context) error {
 	fmt.Printf("%+v\n", volume)
 
 	fmt.Println("attach volume")
-	err = client.AttachVolume(ctx, volume.ID, "cn0004", "iqn.1993-08.org.debian:01:be03c3df7e2c")
+	err = client.AttachVolume(ctx, volume.ID, "", "")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func volumeOperation(client *dorado.Client, ctx context.Context) error {
+	fmt.Println("create volume")
+	u, err := uuid.NewV4()
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("get volume")
+	hgs, err := client.LocalDevice.GetHyperMetroDomains(ctx)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("create volume")
+	volume, err := client.CreateVolume(ctx, u, 21, "0", hgs[0].ID)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%+v\n", volume)
+
+	fmt.Println("attach volume")
+	err = client.AttachVolume(ctx, volume.ID, "", "")
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("detach volume")
+	err = client.DetachVolume(ctx, volume.ID)
 	if err != nil {
 		return err
 	}
