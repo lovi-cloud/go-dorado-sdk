@@ -19,12 +19,22 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = attachVolume(client, ctx)
+	err = getInitiators(client, ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	fmt.Println("operation is done!")
+}
+
+func getInitiators(client *dorado.Client, ctx context.Context) error {
+	initiator, err := client.LocalDevice.GetInitiatorForce(ctx, "")
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(initiator)
+	return nil
 }
 
 func attachVolume(client *dorado.Client, ctx context.Context) error {

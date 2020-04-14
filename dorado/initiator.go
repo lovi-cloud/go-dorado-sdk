@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -31,7 +32,11 @@ const (
 	ErrInitiatorNotFound = "Initiator is not found"
 )
 
-// NOTE(whywaita): maybe not working search initiators by iqn.
+func encodeIqn(iqn string) string {
+	// must escape colon when using filter string.
+	return strings.ReplaceAll(iqn, `:`, `\:`)
+}
+
 func (d *Device) GetInitiators(ctx context.Context, query *SearchQuery) ([]Initiator, error) {
 	spath := "/iscsi_initiator"
 
@@ -164,14 +169,18 @@ func (d *Device) UpdateInitiator(ctx context.Context, iqn string, initiatorParam
 }
 
 func (d *Device) GetInitiatorForce(ctx context.Context, iqn string) (*Initiator, error) {
-	initiators, err := d.GetInitiator(ctx, iqn)
+	initiators, err := d.GetInitiators(ctx, NewSearchQueryName(encodeIqn(iqn)))
 	if err != nil {
-		if err.Error() == ErrInitiatorNotFound { // TODO(whywaita): can't fail over
+		if err.Error() == ErrInitiatorNotFound {
 			return d.CreateInitiator(ctx, iqn)
 		}
 
 		return nil, errors.Wrap(err, "failed to get initiators")
 	}
 
-	return initiators, nil
+	if len(initiators) != 1 {
+		return nil, errors.New("fount multiple initiators in same iqn")
+	}
+
+	return &initiators[0], nil
 }

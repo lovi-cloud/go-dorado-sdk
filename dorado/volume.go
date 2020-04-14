@@ -240,5 +240,7 @@ func (d *Device) DetachVolume(ctx context.Context, lunId string) error {
 		return errors.Wrap(err, "failed to disassociate lun")
 	}
 
+	// TODO: delete host, hostgroup and lungroup if nothing associate object
+
 	return nil
 }
