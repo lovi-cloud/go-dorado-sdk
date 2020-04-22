@@ -25,6 +25,11 @@ const (
 	ErrHyperMetroDomainNotFound = "HyperMetroDomain ID is not found"
 )
 
+func (c *Client) GetHyperMetroDomains(ctx context.Context, query *SearchQuery) ([]HyperMetroDomain, error) {
+	// HyperMetroDomain is a same value between a local device and a remote device.
+	return c.LocalDevice.GetHyperMetroDomains(ctx, query)
+}
+
 func (d *Device) GetHyperMetroDomains(ctx context.Context, query *SearchQuery) ([]HyperMetroDomain, error) {
 	// NOTE(whywaita): implement only GET.
 	// HyperMetroDomain is a few under our usage.

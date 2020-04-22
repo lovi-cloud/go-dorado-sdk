@@ -16,12 +16,19 @@ func main() {
 	}
 
 	fmt.Println("get hypermetro domains")
-	hmds, err := client.LocalDevice.GetHyperMetroDomains(ctx, nil)
+	lhmds, err := client.LocalDevice.GetHyperMetroDomains(ctx, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("%+v\n", hmds)
+	fmt.Printf("%+v\n", lhmds)
+
+	rhmds, err := client.RemoteDevice.GetHyperMetroDomains(ctx, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("%+v\n", rhmds)
 
 	fmt.Println("operation is done!")
 }
