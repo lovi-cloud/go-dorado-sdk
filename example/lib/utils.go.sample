@@ -6,9 +6,10 @@ import (
 	"github.com/whywaita/go-dorado-sdk/dorado"
 )
 
-//const (
-//	StoragePoolId =
-//)
+const (
+	StoragePoolName      = ""
+	HyperMetroDomainName = ""
+)
 
 func GetClient() (*dorado.Client, error) {
 	username := "admin"

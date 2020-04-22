@@ -13,14 +13,14 @@ const (
 	HyperMetroPairIsNotFound = "HyperMetroPair is not found"
 )
 
-func (c *Client) CreateVolume(ctx context.Context, name uuid.UUID, capacityGB int, storagePoolId, hyperMetroDomainId string) (*HyperMetroPair, error) {
+func (c *Client) CreateVolume(ctx context.Context, name uuid.UUID, capacityGB int, storagePoolName, hyperMetroDomainId string) (*HyperMetroPair, error) {
 	// create volume (= hypermetro enabled lun)
-	localLun, err := c.LocalDevice.CreateLUN(ctx, name, capacityGB, storagePoolId)
+	localLun, err := c.LocalDevice.CreateLUN(ctx, name, capacityGB, storagePoolName)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create lun in local device")
 	}
 
-	remoteLun, err := c.RemoteDevice.CreateLUN(ctx, name, capacityGB, storagePoolId)
+	remoteLun, err := c.RemoteDevice.CreateLUN(ctx, name, capacityGB, storagePoolName)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create lun in remote device")
 	}

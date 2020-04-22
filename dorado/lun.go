@@ -153,8 +153,18 @@ func (d *Device) GetLUN(ctx context.Context, lunId string) (*LUN, error) {
 	return lun, nil
 }
 
-func (d *Device) CreateLUN(ctx context.Context, u uuid.UUID, capacityGB int, storagePoolId string) (*LUN, error) {
+func (d *Device) CreateLUN(ctx context.Context, u uuid.UUID, capacityGB int, storagePoolName string) (*LUN, error) {
 	// low level API
+	storagePools, err := d.GetStoragePools(ctx, NewSearchQueryName(storagePoolName))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get storagepool")
+	}
+
+	if len(storagePools) != 1 {
+		return nil, errors.New("found multiple storagepool in same name")
+	}
+	storagePoolId := storagePools[0].ID
+
 	spath := "/lun"
 
 	p := ParamCreateLUN{

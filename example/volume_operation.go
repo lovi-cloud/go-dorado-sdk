@@ -45,13 +45,13 @@ func attachVolume(client *dorado.Client, ctx context.Context) error {
 	}
 
 	fmt.Println("get volume")
-	hgs, err := client.LocalDevice.GetHyperMetroDomains(ctx)
+	hgs, err := client.LocalDevice.GetHyperMetroDomains(ctx, dorado.NewSearchQueryName(lib.HyperMetroDomainName))
 	if err != nil {
 		return err
 	}
 
 	fmt.Println("create volume")
-	volume, err := client.CreateVolume(ctx, u, 21, "0", hgs[0].ID)
+	volume, err := client.CreateVolume(ctx, u, 21, lib.StoragePoolName, hgs[0].ID)
 	if err != nil {
 		return err
 	}
@@ -74,13 +74,13 @@ func volumeOperation(client *dorado.Client, ctx context.Context) error {
 	}
 
 	fmt.Println("get volume")
-	hgs, err := client.LocalDevice.GetHyperMetroDomains(ctx)
+	hgs, err := client.LocalDevice.GetHyperMetroDomains(ctx, dorado.NewSearchQueryName(lib.HyperMetroDomainName))
 	if err != nil {
 		return err
 	}
 
 	fmt.Println("create volume")
-	volume, err := client.CreateVolume(ctx, u, 21, "0", hgs[0].ID)
+	volume, err := client.CreateVolume(ctx, u, 21, lib.StoragePoolName, hgs[0].ID)
 	if err != nil {
 		return err
 	}
@@ -108,12 +108,12 @@ func singleLunOperation(client *dorado.Client, ctx context.Context) error {
 		return err
 	}
 
-	hgs, err := client.LocalDevice.GetHyperMetroDomains(ctx)
+	hgs, err := client.LocalDevice.GetHyperMetroDomains(ctx, dorado.NewSearchQueryName(lib.HyperMetroDomainName))
 	if err != nil {
 		return err
 	}
 
-	hmp, err := client.CreateVolume(ctx, u, 21, "0", hgs[0].ID)
+	hmp, err := client.CreateVolume(ctx, u, 21, lib.StoragePoolName, hgs[0].ID)
 	if err != nil {
 		return err
 	}
