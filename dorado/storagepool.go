@@ -88,12 +88,17 @@ type StoragePools struct {
 	TotalSizeWithoutSnap            string `json:"totalSizeWithoutSnap"`
 }
 
-func (d *Device) GetStoragePools(ctx context.Context) ([]StoragePools, error) {
+const (
+	ErrStoragePoolNotFound = "StoragePool is not found"
+)
+
+func (d *Device) GetStoragePools(ctx context.Context, query *SearchQuery) ([]StoragePools, error) {
 	spath := "/storagepool"
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, ErrCreateRequest)
 	}
+	req = AddSearchQuery(req, query)
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
 		return nil, errors.Wrap(err, ErrHTTPRequestDo)
@@ -103,6 +108,10 @@ func (d *Device) GetStoragePools(ctx context.Context) ([]StoragePools, error) {
 	err = decodeBody(resp, &storagePools)
 	if err != nil {
 		return nil, errors.Wrap(err, ErrDecodeBody)
+	}
+
+	if len(storagePools) == 0 {
+		return nil, errors.New(ErrStoragePoolNotFound)
 	}
 
 	return storagePools, nil

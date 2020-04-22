@@ -21,7 +21,11 @@ type HyperMetroDomain struct {
 	TYPE           int    `json:"TYPE"`
 }
 
-func (d *Device) GetHyperMetroDomains(ctx context.Context) ([]HyperMetroDomain, error) {
+const (
+	ErrHyperMetroDomainNotFound = "HyperMetroDomain ID is not found"
+)
+
+func (d *Device) GetHyperMetroDomains(ctx context.Context, query *SearchQuery) ([]HyperMetroDomain, error) {
 	// NOTE(whywaita): implement only GET.
 	// HyperMetroDomain is a few under our usage.
 
@@ -31,6 +35,7 @@ func (d *Device) GetHyperMetroDomains(ctx context.Context) ([]HyperMetroDomain, 
 	if err != nil {
 		return nil, errors.Wrap(err, ErrCreateRequest)
 	}
+	req = AddSearchQuery(req, query)
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
 		return nil, errors.Wrap(err, ErrHTTPRequestDo)
@@ -39,6 +44,10 @@ func (d *Device) GetHyperMetroDomains(ctx context.Context) ([]HyperMetroDomain, 
 	var hyperMetroDomains []HyperMetroDomain
 	if err = decodeBody(resp, &hyperMetroDomains); err != nil {
 		return nil, errors.Wrap(err, ErrDecodeBody)
+	}
+
+	if len(hyperMetroDomains) == 0 {
+		return nil, errors.New(ErrHyperMetroDomainNotFound)
 	}
 
 	return hyperMetroDomains, nil
