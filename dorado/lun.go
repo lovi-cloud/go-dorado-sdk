@@ -102,7 +102,7 @@ func encodeLunName(u uuid.UUID) string {
 	prefix := "w-" + values[0] + "-" // TODO(whywaita): delete w- later.
 
 	hash := md5.Sum(u.Bytes())
-	name := prefix + hex.EncodeToString(hash[:])[:MAX_NAME_LENGTH-len(prefix)]
+	name := prefix + hex.EncodeToString(hash[:])[:MaxNameLength-len(prefix)]
 	return name
 }
 
@@ -171,7 +171,7 @@ func (d *Device) CreateLUN(ctx context.Context, u uuid.UUID, capacityGB int, sto
 		NAME:               encodeLunName(u),
 		PARENTID:           storagePoolId,
 		DESCRIPTION:        "volume-" + u.String(),
-		CAPACITY:           capacityGB * CAPACITY_UNIT,
+		CAPACITY:           capacityGB * CapacityUnit,
 		WRITEPOLICY:        "1",
 		PREFETCHVALUE:      "0",
 		ALLOCTYPE:          1,
@@ -231,7 +231,7 @@ func (d *Device) ExpandLUN(ctx context.Context, id string, newLunSizeGb int) err
 	}{
 		ID:       id,
 		TYPE:     TypeLUN,
-		CAPACITY: uint64(newLunSizeGb * CAPACITY_UNIT),
+		CAPACITY: uint64(newLunSizeGb * CapacityUnit),
 	}
 	jb, err := json.Marshal(param)
 	if err != nil {

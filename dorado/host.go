@@ -37,9 +37,9 @@ const (
 
 func encodeHostName(hostname string) string {
 	// this function binding by huawei_utils.encode_host_name(id) in OpenStack cinder-driver.
-	if len(hostname) > MAX_NAME_LENGTH {
+	if len(hostname) > MaxNameLength {
 		hash := md5.Sum([]byte(hostname))
-		return hex.EncodeToString(hash[:])[:MAX_NAME_LENGTH]
+		return hex.EncodeToString(hash[:])[:MaxNameLength]
 	}
 
 	return hostname
