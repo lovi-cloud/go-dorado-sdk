@@ -9,10 +9,6 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-const (
-	HyperMetroPairIsNotFound = "HyperMetroPair is not found"
-)
-
 func (c *Client) CreateVolume(ctx context.Context, name uuid.UUID, capacityGB int, storagePoolName, hyperMetroDomainId string) (*HyperMetroPair, error) {
 	// create volume (= hypermetro enabled lun)
 	localLun, err := c.LocalDevice.CreateLUN(ctx, name, capacityGB, storagePoolName)

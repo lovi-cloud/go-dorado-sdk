@@ -56,6 +56,10 @@ type HyperMetroPair struct {
 	WRITESECONDARYTIMEOUT    string `json:"WRITESECONDARYTIMEOUT"`
 }
 
+const (
+	ErrHyperMetroPairNotFound = "HyperMetroPair is not found"
+)
+
 func (c *Client) GetHyperMetroPairs(ctx context.Context, query *SearchQuery) ([]HyperMetroPair, error) {
 	spath := "/HyperMetroPair"
 
@@ -78,6 +82,10 @@ func (c *Client) GetHyperMetroPairs(ctx context.Context, query *SearchQuery) ([]
 	hyperMetroPairs := []HyperMetroPair{}
 	if err = decodeBody(resp, &hyperMetroPairs); err != nil {
 		return nil, errors.Wrap(err, ErrDecodeBody)
+	}
+
+	if len(hyperMetroPairs) == 0 {
+		return nil, errors.New(ErrHyperMetroPairNotFound)
 	}
 
 	return hyperMetroPairs, nil
