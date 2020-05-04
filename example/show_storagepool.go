@@ -1,3 +1,5 @@
+// +build ignore
+
 package main
 
 import (
@@ -14,7 +16,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	sps, err := client.LocalDevice.GetStoragePools(context.Background())
+	sps, err := client.LocalDevice.GetStoragePools(context.Background(), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
