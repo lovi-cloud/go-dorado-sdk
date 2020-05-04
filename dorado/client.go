@@ -79,12 +79,12 @@ func NewClient(localIp, remoteIp, username, password, portgroupName string, logg
 
 	localDevice, err := newDevice(localIp, username, password, httpClient)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create Local Device")
+		return nil, fmt.Errorf("failed to create Local Device: %w", err)
 	}
 
 	remoteDevice, err := newDevice(remoteIp, username, password, httpClient)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create Remote Device")
+		return nil, fmt.Errorf("failed to create Remote Device: %w", err)
 	}
 
 	c := &Client{
@@ -101,12 +101,12 @@ func newDevice(ipStr, username, password string, httpClient *http.Client) (*Devi
 	urlStr := fmt.Sprintf("https://%s/deviceManager/rest/%s", ipStr, DefaultDeviceId)
 	parsedURL, err := url.ParseRequestURI(urlStr)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse url")
+		return nil, fmt.Errorf("failed to parse url: %w", err)
 	}
 
 	jar, err := cookiejar.New(nil)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create cookiejar")
+		return nil, fmt.Errorf("failed to create cookiejar: %w", err)
 	}
 
 	d := &Device{
@@ -119,14 +119,14 @@ func newDevice(ipStr, username, password string, httpClient *http.Client) (*Devi
 
 	token, deviceId, err := d.getToken()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to getToken")
+		return nil, fmt.Errorf("failed to getToken: %w", err)
 	}
 	d.DeviceId = deviceId
 	d.Token = token
 	deviceURL := fmt.Sprintf("https://%s/deviceManager/rest/%s", ipStr, deviceId)
 	parsedDeviceURL, err := url.ParseRequestURI(deviceURL)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse url")
+		return nil, fmt.Errorf("failed to parse url: %w", err)
 	}
 	d.URL = parsedDeviceURL
 
@@ -139,7 +139,7 @@ func (d *Device) newRequest(ctx context.Context, method, spath string, body io.R
 
 	req, err := http.NewRequestWithContext(ctx, method, u.String(), body)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to create new HTTP Request")
+		return nil, fmt.Errorf("failed to create new HTTP Request: %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -170,20 +170,20 @@ func (d *Device) getToken() (string, string, error) {
 	}
 	jb, err := json.Marshal(param)
 	if err != nil {
-		return "", "", errors.Wrap(err, "failed to json.Marshal")
+		return "", "", fmt.Errorf("failed to json.Marshal: %w", err)
 	}
 	urlStr := d.URL.String()
 	d.HTTPClient.Jar = d.Jar
 	resp, err := d.HTTPClient.Post(urlStr+spath, "application/json", bytes.NewBuffer(jb))
 	if err != nil {
-		return "", "", errors.Wrap(err, "failed to get token request")
+		return "", "", fmt.Errorf("failed to get token request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	body := &Session{}
 	err = decodeBody(resp, body)
 	if err != nil {
-		return "", "", errors.Wrap(err, ErrDecodeBody)
+		return "", "", fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {

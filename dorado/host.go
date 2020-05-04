@@ -50,17 +50,17 @@ func (d *Device) GetHosts(ctx context.Context, query *SearchQuery) ([]Host, erro
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	req = AddSearchQuery(req, query)
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	hosts := []Host{}
 	if err = decodeBody(resp, &hosts); err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	if len(hosts) == 0 {
@@ -75,16 +75,16 @@ func (d *Device) GetHost(ctx context.Context, hostId string) (*Host, error) {
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	host := &Host{}
 	if err = decodeBody(resp, host); err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return host, nil
@@ -105,20 +105,20 @@ func (d *Device) CreateHost(ctx context.Context, hostname string) (*Host, error)
 	}
 	jb, err := json.Marshal(param)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreatePostValue)
+		return nil, fmt.Errorf(ErrCreatePostValue+": %w", err)
 	}
 	req, err := d.newRequest(ctx, "POST", spath, bytes.NewBuffer(jb))
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	host := &Host{}
 	if err = decodeBody(resp, host); err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return host, nil
@@ -129,16 +129,16 @@ func (d *Device) DeleteHost(ctx context.Context, hostId string) error {
 
 	req, err := d.newRequest(ctx, "DELETE", spath, nil)
 	if err != nil {
-		return errors.Wrap(err, ErrCreateRequest)
+		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return errors.Wrap(err, ErrHTTPRequestDo)
+		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	var i interface{} // this endpoint return N/A
 	if err = decodeBody(resp, i); err != nil {
-		return errors.Wrap(err, ErrDecodeBody)
+		return fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return nil

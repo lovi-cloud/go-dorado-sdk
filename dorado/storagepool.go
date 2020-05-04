@@ -96,18 +96,18 @@ func (d *Device) GetStoragePools(ctx context.Context, query *SearchQuery) ([]Sto
 	spath := "/storagepool"
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	req = AddSearchQuery(req, query)
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	storagePools := []StoragePools{}
 	err = decodeBody(resp, &storagePools)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	if len(storagePools) == 0 {
@@ -123,17 +123,17 @@ func (d *Device) GetStoragePool(ctx context.Context, storagePoolId int) (*Storag
 	spath := fmt.Sprintf("/storagepool/%d", storagePoolId)
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	err = decodeBody(resp, storagePool)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return storagePool, nil

@@ -28,18 +28,18 @@ func (d *Device) GetMappingViews(ctx context.Context, query *SearchQuery) ([]Map
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	req = AddSearchQuery(req, query)
 
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	mappingviews := []MappingView{}
 	if err = decodeBody(resp, &mappingviews); err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	if len(mappingviews) == 0 {
@@ -54,16 +54,16 @@ func (d *Device) GetMappingView(ctx context.Context, mappingviewId string) (*Map
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	mappingview := &MappingView{}
 	if err = decodeBody(resp, mappingview); err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return mappingview, nil
@@ -80,21 +80,21 @@ func (d *Device) CreateMappingView(ctx context.Context, hostname string) (*Mappi
 	}
 	jb, err := json.Marshal(param)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreatePostValue)
+		return nil, fmt.Errorf(ErrCreatePostValue+": %w", err)
 	}
 
 	req, err := d.newRequest(ctx, "POST", spath, bytes.NewBuffer(jb))
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	mappingview := &MappingView{}
 	if err = decodeBody(resp, mappingview); err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return mappingview, nil
@@ -105,16 +105,16 @@ func (d *Device) DeleteMappingView(ctx context.Context, mappingviewId string) er
 
 	req, err := d.newRequest(ctx, "DELETE", spath, nil)
 	if err != nil {
-		return errors.Wrap(err, ErrCreateRequest)
+		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return errors.Wrap(err, ErrHTTPRequestDo)
+		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	var i interface{} // this endpoint return N/A
 	if err = decodeBody(resp, i); err != nil {
-		return errors.Wrap(err, ErrDecodeBody)
+		return fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return nil
@@ -125,20 +125,20 @@ func (d *Device) AssociateMappingView(ctx context.Context, param AssociateParam)
 
 	jb, err := json.Marshal(param)
 	if err != nil {
-		return errors.Wrap(err, ErrCreatePostValue)
+		return fmt.Errorf(ErrCreatePostValue+": %w", err)
 	}
 	req, err := d.newRequest(ctx, "PUT", spath, bytes.NewBuffer(jb))
 	if err != nil {
-		return errors.Wrap(err, ErrCreateRequest)
+		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return errors.Wrap(err, ErrHTTPRequestDo)
+		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	var i interface{} // this endpoint return N/A
 	if err = decodeBody(resp, i); err != nil {
-		return errors.Wrap(err, ErrDecodeBody)
+		return fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return nil
@@ -149,20 +149,20 @@ func (d *Device) DisAssociateMappingView(ctx context.Context, param AssociatePar
 
 	jb, err := json.Marshal(param)
 	if err != nil {
-		return errors.Wrap(err, ErrCreatePostValue)
+		return fmt.Errorf(ErrCreatePostValue+": %w", err)
 	}
 	req, err := d.newRequest(ctx, "PUT", spath, bytes.NewBuffer(jb))
 	if err != nil {
-		return errors.Wrap(err, ErrCreateRequest)
+		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return errors.Wrap(err, ErrHTTPRequestDo)
+		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	var i interface{} // this endpoint return N/A
 	if err = decodeBody(resp, i); err != nil {
-		return errors.Wrap(err, ErrDecodeBody)
+		return fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return nil
@@ -175,7 +175,7 @@ func (d *Device) GetMappingViewForce(ctx context.Context, hostname string) (*Map
 			return d.CreateMappingView(ctx, hostname)
 		}
 
-		return nil, errors.Wrap(err, "failed to get mapping view")
+		return nil, fmt.Errorf("failed to get mapping view: %w", err)
 	}
 
 	if len(mappingviews) != 1 {
@@ -196,7 +196,7 @@ func (d *Device) DoMapping(ctx context.Context, mappingview *MappingView, hostgr
 		param.ASSOCIATEOBJID = hostgroup.ID
 		err := d.AssociateMappingView(ctx, param)
 		if err != nil {
-			return errors.Wrap(err, "failed to associate hostgroup")
+			return fmt.Errorf("failed to associate hostgroup: %w", err)
 		}
 	}
 
@@ -205,20 +205,20 @@ func (d *Device) DoMapping(ctx context.Context, mappingview *MappingView, hostgr
 		param.ASSOCIATEOBJID = lungroup.ID
 		err := d.AssociateMappingView(ctx, param)
 		if err != nil {
-			return errors.Wrap(err, "failed to associate lungroup")
+			return fmt.Errorf("failed to associate lungroup: %w", err)
 		}
 	}
 
 	isExist, err := d.IsAddToMappingViewPortGroup(ctx, mappingview.ID, portgroupId)
 	if err != nil {
-		return errors.Wrap(err, "failed to get portgroup")
+		return fmt.Errorf("failed to get portgroup: %w", err)
 	}
 	if isExist == false {
 		param.ASSOCIATEOBJTYPE = TypePortGroup
 		param.ASSOCIATEOBJID = portgroupId
 		err := d.AssociateMappingView(ctx, param)
 		if err != nil {
-			return errors.Wrap(err, "failed to associate portgroup")
+			return fmt.Errorf("failed to associate portgroup: %w", err)
 		}
 	}
 

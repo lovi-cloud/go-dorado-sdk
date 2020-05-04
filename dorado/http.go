@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -24,7 +22,7 @@ func decodeBody(resp *http.Response, out interface{}) error {
 	}
 	err := decoder.Decode(r)
 	if err != nil {
-		return errors.Wrap(err, "failed to create json decoder")
+		return fmt.Errorf("failed to create json decoder: %w", err)
 	}
 	if r.Error.Error() != nil {
 		return r.Error.Error()

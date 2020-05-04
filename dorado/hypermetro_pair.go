@@ -65,7 +65,7 @@ func (c *Client) GetHyperMetroPairs(ctx context.Context, query *SearchQuery) ([]
 
 	req, err := c.LocalDevice.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	if query == nil {
 		query = &SearchQuery{
@@ -76,12 +76,12 @@ func (c *Client) GetHyperMetroPairs(ctx context.Context, query *SearchQuery) ([]
 
 	resp, err := c.LocalDevice.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	hyperMetroPairs := []HyperMetroPair{}
 	if err = decodeBody(resp, &hyperMetroPairs); err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	if len(hyperMetroPairs) == 0 {
@@ -96,16 +96,16 @@ func (c *Client) GetHyperMetroPair(ctx context.Context, hyperMetroPairId string)
 
 	req, err := c.LocalDevice.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	resp, err := c.LocalDevice.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	hyperMetroPair := &HyperMetroPair{}
 	if err = decodeBody(resp, hyperMetroPair); err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return hyperMetroPair, nil
@@ -125,20 +125,20 @@ func (c *Client) CreateHyperMetroPair(ctx context.Context, hyperMetroDomainId, l
 
 	jb, err := json.Marshal(param)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreatePostValue)
+		return nil, fmt.Errorf(ErrCreatePostValue+": %w", err)
 	}
 	req, err := c.LocalDevice.newRequest(ctx, "POST", spath, bytes.NewBuffer(jb))
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	resp, err := c.LocalDevice.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	hyperMetroPair := &HyperMetroPair{}
 	if err = decodeBody(resp, hyperMetroPair); err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return hyperMetroPair, nil
@@ -150,16 +150,16 @@ func (c *Client) DeleteHyperMetroPair(ctx context.Context, hyperMetroPairId stri
 
 	req, err := c.LocalDevice.newRequest(ctx, "DELETE", spath, nil)
 	if err != nil {
-		return errors.Wrap(err, ErrCreateRequest)
+		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	resp, err := c.LocalDevice.HTTPClient.Do(req)
 	if err != nil {
-		return errors.Wrap(err, ErrHTTPRequestDo)
+		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	var i interface{} // this endpoint return N/A
 	if err = decodeBody(resp, i); err != nil {
-		return errors.Wrap(err, ErrDecodeBody)
+		return fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return nil
@@ -176,21 +176,21 @@ func (c *Client) SuspendHyperMetroPair(ctx context.Context, hyperMetroPairId str
 	}
 	jb, err := json.Marshal(param)
 	if err != nil {
-		return errors.Wrap(err, ErrCreatePostValue)
+		return fmt.Errorf(ErrCreatePostValue+": %w", err)
 	}
 
 	req, err := c.LocalDevice.newRequest(ctx, "PUT", spath, bytes.NewBuffer(jb))
 	if err != nil {
-		return errors.Wrap(err, ErrCreateRequest)
+		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	resp, err := c.LocalDevice.HTTPClient.Do(req)
 	if err != nil {
-		return errors.Wrap(err, ErrHTTPRequestDo)
+		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	var i interface{} // this endpoint return N/A
 	if err = decodeBody(resp, i); err != nil {
-		return errors.Wrap(err, ErrDecodeBody)
+		return fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return nil
@@ -207,21 +207,21 @@ func (c *Client) SyncHyperMetroPair(ctx context.Context, hyperMetroPairId string
 	}
 	jb, err := json.Marshal(param)
 	if err != nil {
-		return errors.Wrap(err, ErrCreatePostValue)
+		return fmt.Errorf(ErrCreatePostValue+": %w", err)
 	}
 
 	req, err := c.LocalDevice.newRequest(ctx, "PUT", spath, bytes.NewBuffer(jb))
 	if err != nil {
-		return errors.Wrap(err, ErrCreateRequest)
+		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	resp, err := c.LocalDevice.HTTPClient.Do(req)
 	if err != nil {
-		return errors.Wrap(err, ErrHTTPRequestDo)
+		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	var i interface{} // this endpoint return N/A
 	if err = decodeBody(resp, i); err != nil {
-		return errors.Wrap(err, ErrDecodeBody)
+		return fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return nil

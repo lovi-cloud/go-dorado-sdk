@@ -2,8 +2,7 @@ package dorado
 
 import (
 	"context"
-
-	"github.com/pkg/errors"
+	"fmt"
 )
 
 type System struct {
@@ -54,19 +53,19 @@ func (d *Device) GetSystem(ctx context.Context) (*System, error) {
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	req.URL.Path = req.URL.Path + "/" // path.Join trim last slash
 
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	system := &System{}
 	err = decodeBody(resp, system)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return system, nil

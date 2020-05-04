@@ -2,6 +2,7 @@ package dorado
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/pkg/errors"
 )
@@ -38,17 +39,17 @@ func (d *Device) GetHyperMetroDomains(ctx context.Context, query *SearchQuery) (
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	req = AddSearchQuery(req, query)
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	var hyperMetroDomains []HyperMetroDomain
 	if err = decodeBody(resp, &hyperMetroDomains); err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	if len(hyperMetroDomains) == 0 {

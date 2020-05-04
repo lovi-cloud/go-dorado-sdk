@@ -111,19 +111,19 @@ func (d *Device) GetLUNs(ctx context.Context, query *SearchQuery) ([]LUN, error)
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 
 	req = AddSearchQuery(req, query)
 
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	luns := []LUN{}
 	if err = decodeBody(resp, &luns); err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	if len(luns) == 0 {
@@ -138,16 +138,16 @@ func (d *Device) GetLUN(ctx context.Context, lunId string) (*LUN, error) {
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	lun := &LUN{}
 	if err = decodeBody(resp, lun); err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return lun, nil
@@ -157,7 +157,7 @@ func (d *Device) CreateLUN(ctx context.Context, u uuid.UUID, capacityGB int, sto
 	// low level API
 	storagePools, err := d.GetStoragePools(ctx, NewSearchQueryName(storagePoolName))
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get storagepool")
+		return nil, fmt.Errorf("failed to get storagepool: %w", err)
 	}
 
 	if len(storagePools) != 1 {
@@ -182,21 +182,21 @@ func (d *Device) CreateLUN(ctx context.Context, u uuid.UUID, capacityGB int, sto
 	}
 	jb, err := json.Marshal(p)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreatePostValue)
+		return nil, fmt.Errorf(ErrCreatePostValue+": %w", err)
 	}
 	req, err := d.newRequest(ctx, "POST", spath, bytes.NewBuffer(jb))
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	lun := &LUN{}
 	if err := decodeBody(resp, lun); err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return lun, nil
@@ -206,17 +206,17 @@ func (d *Device) DeleteLUN(ctx context.Context, id string) error {
 	spath := fmt.Sprintf("/lun/%s", id)
 	req, err := d.newRequest(ctx, "DELETE", spath, nil)
 	if err != nil {
-		return errors.Wrap(err, ErrCreateRequest)
+		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return errors.Wrap(err, ErrHTTPRequestDo)
+		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	var i interface{} // this endpoint return N/A
 	if err := decodeBody(resp, i); err != nil {
-		return errors.Wrap(err, ErrDecodeBody)
+		return fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return nil
@@ -235,21 +235,21 @@ func (d *Device) ExpandLUN(ctx context.Context, id string, newLunSizeGb int) err
 	}
 	jb, err := json.Marshal(param)
 	if err != nil {
-		return errors.Wrap(err, ErrCreatePostValue)
+		return fmt.Errorf(ErrCreatePostValue+": %w", err)
 	}
 
 	req, err := d.newRequest(ctx, "PUT", spath, bytes.NewBuffer(jb))
 	if err != nil {
-		return errors.Wrap(err, ErrCreateRequest)
+		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return errors.Wrap(err, ErrHTTPRequestDo)
+		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	var i interface{} // this endpoint return N/A
 	if err = decodeBody(resp, i); err != nil {
-		return errors.Wrap(err, ErrDecodeBody)
+		return fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return nil
@@ -260,17 +260,17 @@ func (d *Device) GetAssociateLUNs(ctx context.Context, query *SearchQuery) ([]LU
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	req = AddSearchQuery(req, query)
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	luns := []LUN{}
 	if err = decodeBody(resp, luns); err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	if len(luns) == 0 {

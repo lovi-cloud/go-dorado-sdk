@@ -30,17 +30,17 @@ func (d *Device) GetLunGroups(ctx context.Context, query *SearchQuery) ([]LunGro
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	req = AddSearchQuery(req, query)
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	lunGroups := []LunGroup{}
 	if err = decodeBody(resp, &lunGroups); err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	if len(lunGroups) == 0 {
@@ -55,16 +55,16 @@ func (d *Device) GetLunGroup(ctx context.Context, lungroupId string) (*LunGroup,
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	lunGroup := &LunGroup{}
 	if err = decodeBody(resp, lunGroup); err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return lunGroup, nil
@@ -83,21 +83,21 @@ func (d *Device) CreateLunGroup(ctx context.Context, hostname string) (*LunGroup
 	}
 	jb, err := json.Marshal(param)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreatePostValue)
+		return nil, fmt.Errorf(ErrCreatePostValue+": %w", err)
 	}
 
 	req, err := d.newRequest(ctx, "POST", spath, bytes.NewBuffer(jb))
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	lunGroup := &LunGroup{}
 	if err = decodeBody(resp, lunGroup); err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return lunGroup, nil
@@ -108,16 +108,16 @@ func (d *Device) DeleteLunGroup(ctx context.Context, lungroupId string) error {
 
 	req, err := d.newRequest(ctx, "DELETE", spath, nil)
 	if err != nil {
-		return errors.Wrap(err, ErrCreateRequest)
+		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return errors.Wrap(err, ErrHTTPRequestDo)
+		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	var i interface{} // this endpoint return N/A
 	if err = decodeBody(resp, i); err != nil {
-		return errors.Wrap(err, ErrDecodeBody)
+		return fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return nil
@@ -132,21 +132,21 @@ func (d *Device) AssociateLun(ctx context.Context, lungroupId, lunId string) err
 	}
 	jb, err := json.Marshal(param)
 	if err != nil {
-		return errors.Wrap(err, ErrCreatePostValue)
+		return fmt.Errorf(ErrCreatePostValue+": %w", err)
 	}
 
 	req, err := d.newRequest(ctx, "POST", spath, bytes.NewBuffer(jb))
 	if err != nil {
-		return errors.Wrap(err, ErrCreateRequest)
+		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return errors.Wrap(err, ErrHTTPRequestDo)
+		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	var i interface{} // this endpoint return N/A
 	if err = decodeBody(resp, i); err != nil {
-		return errors.Wrap(err, ErrDecodeBody)
+		return fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return nil
@@ -162,17 +162,17 @@ func (d *Device) DisAssociateLun(ctx context.Context, lungroupId, lunId string) 
 
 	req, err := d.newRequest(ctx, "DELETE", spath, nil)
 	if err != nil {
-		return errors.Wrap(err, ErrCreateRequest)
+		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	req = AddAssociateParam(req, param)
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return errors.Wrap(err, ErrHTTPRequestDo)
+		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	var i interface{} // this endpoint return N/A
 	if err = decodeBody(resp, i); err != nil {
-		return errors.Wrap(err, ErrDecodeBody)
+		return fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return nil
@@ -183,17 +183,17 @@ func (d *Device) GetAssociateLunGroups(ctx context.Context, query *SearchQuery) 
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	req = AddSearchQuery(req, query)
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	lungroups := []LunGroup{}
 	if err = decodeBody(resp, &lungroups); err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return lungroups, nil
@@ -208,10 +208,10 @@ func (d *Device) GetLunGroupByLunId(ctx context.Context, lunId string) (*LunGrou
 
 	lungroups, err := d.GetAssociateLunGroups(ctx, query)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get lun group")
+		return nil, fmt.Errorf("failed to get lun group: %w", err)
 	}
 	if len(lungroups) != 1 {
-		return nil, errors.Wrap(err, "found multiple LUN Group in same lun id")
+		return nil, fmt.Errorf("found multiple LUN Group in same lun id: %w", err)
 	}
 
 	return &lungroups[0], nil
@@ -234,7 +234,7 @@ func (d *Device) GetLunGroupForce(ctx context.Context, hostname string) (*LunGro
 			return d.CreateLunGroup(ctx, hostname)
 		}
 
-		return nil, errors.Wrap(err, "failed to get lungroup")
+		return nil, fmt.Errorf("failed to get lungroup: %w", err)
 	}
 
 	if len(lungroups) != 1 {

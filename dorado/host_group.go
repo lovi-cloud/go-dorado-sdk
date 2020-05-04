@@ -30,17 +30,17 @@ func (d *Device) GetHostGroups(ctx context.Context, query *SearchQuery) ([]HostG
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	req = AddSearchQuery(req, query)
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	hostGroups := []HostGroup{}
 	if err = decodeBody(resp, &hostGroups); err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	if len(hostGroups) == 0 {
@@ -55,16 +55,16 @@ func (d *Device) GetHostGroup(ctx context.Context, hostgroupId string) (*HostGro
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	hostGroup := &HostGroup{}
 	if err = decodeBody(resp, hostGroup); err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return hostGroup, nil
@@ -81,20 +81,20 @@ func (d *Device) CreateHostGroup(ctx context.Context, hostname string) (*HostGro
 	}
 	jb, err := json.Marshal(param)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreatePostValue)
+		return nil, fmt.Errorf(ErrCreatePostValue+": %w", err)
 	}
 	req, err := d.newRequest(ctx, "POST", spath, bytes.NewBuffer(jb))
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	hg := &HostGroup{}
 	if err = decodeBody(resp, hg); err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return hg, nil
@@ -105,16 +105,16 @@ func (d *Device) DeleteHostGroup(ctx context.Context, hostGroupId string) error 
 
 	req, err := d.newRequest(ctx, "DELETE", spath, nil)
 	if err != nil {
-		return errors.Wrap(err, ErrCreatePostValue)
+		return fmt.Errorf(ErrCreatePostValue+": %w", err)
 	}
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return errors.Wrap(err, ErrHTTPRequestDo)
+		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	var i interface{} // this endpoint return N/A
 	if err = decodeBody(resp, i); err != nil {
-		return errors.Wrap(err, ErrDecodeBody)
+		return fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return nil
@@ -130,21 +130,21 @@ func (d *Device) AssociateHost(ctx context.Context, hostgroupId, hostId string) 
 	fmt.Printf("%+v\n", param)
 	jb, err := json.Marshal(param)
 	if err != nil {
-		return errors.Wrap(err, ErrCreatePostValue)
+		return fmt.Errorf(ErrCreatePostValue+": %w", err)
 	}
 
 	req, err := d.newRequest(ctx, "POST", spath, bytes.NewBuffer(jb))
 	if err != nil {
-		return errors.Wrap(err, ErrCreateRequest)
+		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return errors.Wrap(err, ErrHTTPRequestDo)
+		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	var i interface{} // this endpoint return N/A
 	if err = decodeBody(resp, i); err != nil {
-		return errors.Wrap(err, ErrDecodeBody)
+		return fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return nil
@@ -155,7 +155,7 @@ func (d *Device) DisAssociateHost(ctx context.Context, hostgroupId, hostId strin
 
 	req, err := d.newRequest(ctx, "DELETE", spath, nil)
 	if err != nil {
-		return errors.Wrap(err, ErrCreateRequest)
+		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	q := req.URL.Query()
 	q.Add("ID", hostgroupId)
@@ -166,12 +166,12 @@ func (d *Device) DisAssociateHost(ctx context.Context, hostgroupId, hostId strin
 
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return errors.Wrap(err, ErrHTTPRequestDo)
+		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	var i interface{} // this endpoint return N/A
 	if err = decodeBody(resp, i); err != nil {
-		return errors.Wrap(err, ErrDecodeBody)
+		return fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return nil
@@ -180,17 +180,17 @@ func (d *Device) DisAssociateHost(ctx context.Context, hostgroupId, hostId strin
 func (d *Device) CreateHostGroupWithHost(ctx context.Context, hostname string) (*HostGroup, *Host, error) {
 	host, err := d.CreateHost(ctx, hostname)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to create Host")
+		return nil, nil, fmt.Errorf("failed to create Host: %w", err)
 	}
 
 	hostgroup, err := d.CreateHostGroup(ctx, hostname)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to create hostgroup")
+		return nil, nil, fmt.Errorf("failed to create hostgroup: %w", err)
 	}
 
 	err = d.AssociateHost(ctx, hostgroup.ID, host.ID)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to associate to hostgroup")
+		return nil, nil, fmt.Errorf("failed to associate to hostgroup: %w", err)
 	}
 
 	return hostgroup, host, nil
@@ -199,11 +199,11 @@ func (d *Device) CreateHostGroupWithHost(ctx context.Context, hostname string) (
 func (d *Device) DeleteHostGroupWithHost(ctx context.Context, hostgroupId string) error {
 	hostgroup, err := d.GetHostGroup(ctx, hostgroupId)
 	if err != nil {
-		return errors.Wrap(err, "failed to search hostgroup by ID")
+		return fmt.Errorf("failed to search hostgroup by ID: %w", err)
 	}
 	hosts, err := d.GetHosts(ctx, NewSearchQueryHostname(hostgroup.NAME))
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("failed to search host that name is %s", hostgroup.NAME))
+		return fmt.Errorf("failed to search host: %w", err)
 	}
 	if len(hosts) != 1 {
 		return errors.New("search result of host is not one")
@@ -212,15 +212,15 @@ func (d *Device) DeleteHostGroupWithHost(ctx context.Context, hostgroupId string
 
 	err = d.DisAssociateHost(ctx, hostgroup.ID, host.ID)
 	if err != nil {
-		return errors.Wrap(err, "failed to deassociate hostgroup")
+		return fmt.Errorf("failed to deassociate hostgroup: %w", err)
 	}
 	err = d.DeleteHost(ctx, host.ID)
 	if err != nil {
-		return errors.Wrap(err, "failed to delete host")
+		return fmt.Errorf("failed to delete host: %w", err)
 	}
 	err = d.DeleteHostGroup(ctx, hostgroup.ID)
 	if err != nil {
-		return errors.Wrap(err, "failed to delete hostgroup")
+		return fmt.Errorf("failed to delete hostgroup: %w", err)
 	}
 
 	return nil
@@ -235,30 +235,30 @@ func (d *Device) GetHostGroupForce(ctx context.Context, hostname string) (*HostG
 		}
 
 		// Unexpected Error
-		return nil, nil, errors.Wrap(err, "failed to get hostgroup")
+		return nil, nil, fmt.Errorf("failed to get hostgroup: %w", err)
 	}
 
 	if len(hostgroups) != 1 {
 		// hostgroup is must be unique
-		return nil, nil, errors.Wrap(err, "fount multiple hostgroup in same hostname")
+		return nil, nil, fmt.Errorf("fount multiple hostgroup in same hostname: %w", err)
 	}
 	hostgroup := hostgroups[0]
 
 	hosts, err := d.GetHosts(ctx, NewSearchQueryHostname(hostname))
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to get host")
+		return nil, nil, fmt.Errorf("failed to get host: %w", err)
 	}
 
 	// host : hostgroup is 1:1, if get not only one, data is incorrect!
 	if len(hosts) != 1 {
-		return nil, nil, errors.Wrap(err, "found multiple hosts associated hostgroup")
+		return nil, nil, fmt.Errorf("found multiple hosts associated hostgroup: %w", err)
 	}
 	host := hosts[0]
 
 	if host.ISADD2HOSTGROUP == "false" {
 		err = d.AssociateHost(ctx, hostgroup.ID, host.ID)
 		if err != nil {
-			return nil, nil, errors.Wrap(err, "failed to associate host to hostgroup")
+			return nil, nil, fmt.Errorf("failed to associate host to hostgroup: %w", err)
 		}
 	}
 

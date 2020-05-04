@@ -23,18 +23,18 @@ func (d *Device) GetPortGroups(ctx context.Context, query *SearchQuery) ([]PortG
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	req = AddSearchQuery(req, query)
 
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	portgroups := []PortGroup{}
 	if err = decodeBody(resp, &portgroups); err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	if len(portgroups) == 0 {
@@ -49,16 +49,16 @@ func (d *Device) GetPortGroup(ctx context.Context, portgroupId string) (*PortGro
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	portgroup := &PortGroup{}
 	if err = decodeBody(resp, portgroup); err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return portgroup, nil
@@ -69,7 +69,7 @@ func (d *Device) GetPortGroupsAssociate(ctx context.Context, mappingviewId strin
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrCreateRequest)
+		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	param := &AssociateParam{
 		ASSOCIATEOBJID:   mappingviewId,
@@ -78,12 +78,12 @@ func (d *Device) GetPortGroupsAssociate(ctx context.Context, mappingviewId strin
 	req = AddAssociateParam(req, param)
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, ErrHTTPRequestDo)
+		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
 	portgroups := []PortGroup{}
 	if err = decodeBody(resp, &portgroups); err != nil {
-		return nil, errors.Wrap(err, ErrDecodeBody)
+		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
 	return portgroups, nil
@@ -92,7 +92,7 @@ func (d *Device) GetPortGroupsAssociate(ctx context.Context, mappingviewId strin
 func (d *Device) IsAddToMappingViewPortGroup(ctx context.Context, mappingViewId, portgroupId string) (bool, error) {
 	portgroups, err := d.GetPortGroupsAssociate(ctx, mappingViewId)
 	if err != nil {
-		return false, errors.Wrap(err, "failed to get portgroups")
+		return false, fmt.Errorf("failed to get portgroups: %w", err)
 	}
 
 	for _, p := range portgroups {
