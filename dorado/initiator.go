@@ -37,6 +37,9 @@ func encodeIqn(iqn string) string {
 	return strings.ReplaceAll(iqn, `:`, `\:`)
 }
 
+// GetInitiators search initiators.
+// you must use encodeIqn when to search iqn.
+// ex: initiators, err := d.GetInitiators(ctx, NewSearchQueryId(encodeIqn(iqn)))
 func (d *Device) GetInitiators(ctx context.Context, query *SearchQuery) ([]Initiator, error) {
 	spath := "/iscsi_initiator"
 
@@ -50,8 +53,8 @@ func (d *Device) GetInitiators(ctx context.Context, query *SearchQuery) ([]Initi
 		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
 	}
 
-	initiators := []Initiator{}
-	if err = decodeBody(resp, initiators); err != nil {
+	var initiators []Initiator
+	if err = decodeBody(resp, &initiators); err != nil {
 		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
@@ -169,7 +172,7 @@ func (d *Device) UpdateInitiator(ctx context.Context, iqn string, initiatorParam
 }
 
 func (d *Device) GetInitiatorForce(ctx context.Context, iqn string) (*Initiator, error) {
-	initiators, err := d.GetInitiators(ctx, NewSearchQueryName(encodeIqn(iqn)))
+	initiators, err := d.GetInitiators(ctx, NewSearchQueryId(encodeIqn(iqn)))
 	if err != nil {
 		if err.Error() == ErrInitiatorNotFound {
 			return d.CreateInitiator(ctx, iqn)

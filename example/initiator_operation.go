@@ -31,5 +31,33 @@ func main() {
 	}
 	fmt.Printf("%+v\n", initiator)
 
+	dummyIqn := "dummyiqn"
+	fmt.Println("get initiator force")
+	_, err = client.LocalDevice.GetInitiatorForce(ctx, dummyIqn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("delete initiator")
+	err = client.LocalDevice.DeleteInitiator(ctx, dummyIqn)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("get initiator force (maybe create)")
+	_, err = client.LocalDevice.GetInitiatorForce(ctx, dummyIqn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("get initiator force (not create)")
+	_, err = client.LocalDevice.GetInitiatorForce(ctx, dummyIqn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("delete initiator")
+	err = client.LocalDevice.DeleteInitiator(ctx, dummyIqn)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	fmt.Println("operation is done!")
 }
