@@ -22,11 +22,8 @@ func main() {
 	}
 
 	fmt.Println("create lun")
-	id, err := uuid.NewV4()
-	if err != nil {
-		log.Fatal(err)
-	}
-	lun, err := client.LocalDevice.CreateLUN(ctx, id, 21, "0")
+	id := uuid.NewV4()
+	lun, err := client.LocalDevice.CreateLUN(ctx, id, 21, lib.StoragePoolName)
 	if err != nil {
 		log.Fatal(err)
 	}
