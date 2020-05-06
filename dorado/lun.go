@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -17,6 +18,7 @@ import (
 type LUN struct {
 	ALLOCCAPACITY               string `json:"ALLOCCAPACITY"`
 	ALLOCTYPE                   string `json:"ALLOCTYPE"`
+	ASSOCIATEMETADATA           string `json:"ASSOCIATEMETADATA"`
 	CAPABILITY                  string `json:"CAPABILITY"`
 	CAPACITY                    string `json:"CAPACITY"`
 	CAPACITYALARMLEVEL          string `json:"CAPACITYALARMLEVEL"`
@@ -75,6 +77,10 @@ type LUN struct {
 	LunCgID                     string `json:"lunCgId"`
 	RemoteLunWwn                string `json:"remoteLunWwn"`
 	TakeOverLunWwn              string `json:"takeOverLunWwn"`
+}
+
+type ASSOCIATEMETADATA struct {
+	HostLUNID int `json:"HostLUNID"`
 }
 
 type ParamCreateLUN struct {
@@ -278,4 +284,33 @@ func (d *Device) GetAssociateLUNs(ctx context.Context, query *SearchQuery) ([]LU
 	}
 
 	return luns, nil
+}
+
+// GetHostLUNID get LUN ID per host.
+func (d *Device) GetHostLUNID(ctx context.Context, lunID, hostID int) (string, error) {
+	query := &SearchQuery{
+		AssociateObjType: strconv.Itoa(TypeHost),
+		AssociateObjID:   strconv.Itoa(hostID),
+	}
+
+	luns, err := d.GetAssociateLUNs(ctx, query)
+	if err != nil {
+		return "", fmt.Errorf("failed to get associated LUNs: %w", err)
+	}
+
+	strLunID := strconv.Itoa(lunID)
+	for _, lun := range luns {
+		if lun.ID == strLunID {
+			jsonStr := lun.ASSOCIATEMETADATA
+			hostLunId := ASSOCIATEMETADATA{}
+			err := json.Unmarshal([]byte(jsonStr), &hostLunId)
+			if err != nil {
+				return "", fmt.Errorf("failed to parse ASSOCIATEMETADATA: %w", err)
+			}
+
+			return strconv.Itoa(hostLunId.HostLUNID), nil
+		}
+	}
+
+	return "", fmt.Errorf("LUN (ID: %d) is not associated host (ID: %d)", lunID, hostID)
 }
