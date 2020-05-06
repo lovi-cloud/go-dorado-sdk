@@ -18,23 +18,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	targetports, err := client.LocalDevice.GetTargetPort(ctx, nil)
+	portalIPs, err := client.LocalDevice.GetPortalIPAddresses(ctx, 0)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	for _, t := range targetports {
-		fmt.Printf("%+v\n", t)
-	}
-
-	targetIqns, err := client.LocalDevice.GetTargetIQNs(ctx)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, t := range targetIqns {
-		fmt.Printf("%+v\n", t)
-	}
+	fmt.Printf("%+v\n", portalIPs)
 
 	fmt.Println("operation is done!")
 }
