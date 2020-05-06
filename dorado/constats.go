@@ -20,6 +20,7 @@ const (
 	TypePortGroup      = 257
 	TypeInitiator      = 222
 	TypeMappingView    = 245
+	TypeEthernetPort   = 213
 	TypeHyperMetroPair = 15361
 )
 

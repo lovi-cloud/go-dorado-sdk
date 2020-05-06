@@ -15,7 +15,7 @@ type PortGroup struct {
 }
 
 const (
-	PortGroupNotFound = "PortGroup is not found"
+	ErrPortGroupNotFound = "PortGroup is not found"
 )
 
 func (d *Device) GetPortGroups(ctx context.Context, query *SearchQuery) ([]PortGroup, error) {
@@ -38,7 +38,7 @@ func (d *Device) GetPortGroups(ctx context.Context, query *SearchQuery) ([]PortG
 	}
 
 	if len(portgroups) == 0 {
-		return nil, errors.New(PortGroupNotFound)
+		return nil, errors.New(ErrPortGroupNotFound)
 	}
 
 	return portgroups, nil
