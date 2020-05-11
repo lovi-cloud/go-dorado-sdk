@@ -112,6 +112,7 @@ func (d *Device) GetPortalIPAddresses(ctx context.Context, portgroupID int) ([]s
 	return portalIPs, nil
 }
 
+// GetPortalIPAddresses is dorado.Client version of dorado.Device.GetPortalIPAddresses.
 func (c *Client) GetPortalIPAddresses(ctx context.Context, localPortgroupID, remotePortgroupID int) ([]string, error) {
 	localIPs, err := c.LocalDevice.GetPortalIPAddresses(ctx, localPortgroupID)
 	if err != nil {
