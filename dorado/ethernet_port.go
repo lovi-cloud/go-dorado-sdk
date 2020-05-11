@@ -112,13 +112,13 @@ func (d *Device) GetPortalIPAddresses(ctx context.Context, portgroupID int) ([]s
 	return portalIPs, nil
 }
 
-func (c *Client) GetPortalIPAddresses(ctx context.Context, portgroupID int) ([]string, error) {
-	localIPs, err := c.LocalDevice.GetPortalIPAddresses(ctx, portgroupID)
+func (c *Client) GetPortalIPAddresses(ctx context.Context, localPortgroupID, remotePortgroupID int) ([]string, error) {
+	localIPs, err := c.LocalDevice.GetPortalIPAddresses(ctx, localPortgroupID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get local portal IP: %w", err)
 	}
 
-	remoteIPs, err := c.RemoteDevice.GetPortalIPAddresses(ctx, portgroupID)
+	remoteIPs, err := c.RemoteDevice.GetPortalIPAddresses(ctx, remotePortgroupID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get remote portal IP: %w", err)
 	}
