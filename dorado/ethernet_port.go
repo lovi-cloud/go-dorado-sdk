@@ -93,9 +93,9 @@ func (d *Device) GetAssociatedEthernetPort(ctx context.Context, query *SearchQue
 
 // GetPortalIPAddresses get iSCSI portal IP addresses that associated port group.
 // return only IPv4 address.
-func (d *Device) GetPortalIPAddresses(ctx context.Context, portgroupId int) ([]string, error) {
+func (d *Device) GetPortalIPAddresses(ctx context.Context, portgroupID int) ([]string, error) {
 	query := &SearchQuery{
-		AssociateObjID:   strconv.Itoa(portgroupId),
+		AssociateObjID:   strconv.Itoa(portgroupID),
 		AssociateObjType: strconv.Itoa(TypePortGroup),
 	}
 
@@ -110,4 +110,19 @@ func (d *Device) GetPortalIPAddresses(ctx context.Context, portgroupId int) ([]s
 	}
 
 	return portalIPs, nil
+}
+
+func (c *Client) GetPortalIPAddresses(ctx context.Context, portgroupID int) ([]string, error) {
+	localIPs, err := c.LocalDevice.GetPortalIPAddresses(ctx, portgroupID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get local portal IP: %w", err)
+	}
+
+	remoteIPs, err := c.RemoteDevice.GetPortalIPAddresses(ctx, portgroupID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get remote portal IP: %w", err)
+	}
+
+	ips := append(localIPs, remoteIPs...)
+	return ips, nil
 }
