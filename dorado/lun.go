@@ -169,13 +169,13 @@ func (d *Device) CreateLUN(ctx context.Context, u uuid.UUID, capacityGB int, sto
 	if len(storagePools) != 1 {
 		return nil, errors.New("found multiple storagepool in same name")
 	}
-	storagePoolId := storagePools[0].ID
+	storagePoolID := storagePools[0].ID
 
 	spath := "/lun"
 
 	p := ParamCreateLUN{
 		NAME:               EncodeLunName(u),
-		PARENTID:           storagePoolId,
+		PARENTID:           strconv.Itoa(storagePoolID),
 		DESCRIPTION:        "volume-" + u.String(),
 		CAPACITY:           capacityGB * CapacityUnit,
 		WRITEPOLICY:        "1",

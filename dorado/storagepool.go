@@ -54,7 +54,7 @@ type StoragePools struct {
 	DESCRIPTION                     string `json:"DESCRIPTION"`
 	ENDINGUPTHRESHOLD               string `json:"ENDINGUPTHRESHOLD"`
 	HEALTHSTATUS                    string `json:"HEALTHSTATUS"`
-	ID                              string `json:"ID"`
+	ID                              int    `json:"ID,string"`
 	LUNCONFIGEDCAPACITY             string `json:"LUNCONFIGEDCAPACITY"`
 	NAME                            string `json:"NAME"`
 	PARENTID                        string `json:"PARENTID"`
