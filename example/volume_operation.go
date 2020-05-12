@@ -15,13 +15,14 @@ import (
 
 func main() {
 	ctx := context.Background()
+	var err error
 
 	client, err := lib.GetClient()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = getInitiators(client, ctx)
+	err = volumeOperation(client, ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -42,9 +43,6 @@ func getInitiators(client *dorado.Client, ctx context.Context) error {
 func attachVolume(client *dorado.Client, ctx context.Context) error {
 	fmt.Println("create volume")
 	u := uuid.NewV4()
-	if err != nil {
-		return err
-	}
 
 	fmt.Println("get volume")
 	hgs, err := client.LocalDevice.GetHyperMetroDomains(ctx, dorado.NewSearchQueryName(lib.HyperMetroDomainName))
@@ -60,7 +58,7 @@ func attachVolume(client *dorado.Client, ctx context.Context) error {
 	fmt.Printf("%+v\n", volume)
 
 	fmt.Println("attach volume")
-	err = client.AttachVolume(ctx, volume.ID, "", "")
+	err = client.AttachVolume(ctx, volume.ID, "w-cn0001", "dummy-iqn")
 	if err != nil {
 		return err
 	}
@@ -71,9 +69,6 @@ func attachVolume(client *dorado.Client, ctx context.Context) error {
 func volumeOperation(client *dorado.Client, ctx context.Context) error {
 	fmt.Println("create volume")
 	u := uuid.NewV4()
-	if err != nil {
-		return err
-	}
 
 	fmt.Println("get volume")
 	hgs, err := client.LocalDevice.GetHyperMetroDomains(ctx, dorado.NewSearchQueryName(lib.HyperMetroDomainName))
@@ -89,7 +84,7 @@ func volumeOperation(client *dorado.Client, ctx context.Context) error {
 	fmt.Printf("%+v\n", volume)
 
 	fmt.Println("attach volume")
-	err = client.AttachVolume(ctx, volume.ID, "", "")
+	err = client.AttachVolume(ctx, volume.ID, "w-cn0001", "dummy-iqn")
 	if err != nil {
 		return err
 	}
@@ -106,9 +101,6 @@ func volumeOperation(client *dorado.Client, ctx context.Context) error {
 func singleLunOperation(client *dorado.Client, ctx context.Context) error {
 	fmt.Println("create volume")
 	u := uuid.NewV4()
-	if err != nil {
-		return err
-	}
 
 	hgs, err := client.LocalDevice.GetHyperMetroDomains(ctx, dorado.NewSearchQueryName(lib.HyperMetroDomainName))
 	if err != nil {
