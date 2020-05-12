@@ -41,7 +41,7 @@ func getInitiators(client *dorado.Client, ctx context.Context) error {
 
 func attachVolume(client *dorado.Client, ctx context.Context) error {
 	fmt.Println("create volume")
-	u, err := uuid.NewV4()
+	u := uuid.NewV4()
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func attachVolume(client *dorado.Client, ctx context.Context) error {
 
 func volumeOperation(client *dorado.Client, ctx context.Context) error {
 	fmt.Println("create volume")
-	u, err := uuid.NewV4()
+	u := uuid.NewV4()
 	if err != nil {
 		return err
 	}
@@ -105,7 +105,7 @@ func volumeOperation(client *dorado.Client, ctx context.Context) error {
 
 func singleLunOperation(client *dorado.Client, ctx context.Context) error {
 	fmt.Println("create volume")
-	u, err := uuid.NewV4()
+	u := uuid.NewV4()
 	if err != nil {
 		return err
 	}
