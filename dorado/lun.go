@@ -37,10 +37,10 @@ type LUN struct {
 	EXTENDIFSWITCH              string `json:"EXTENDIFSWITCH"`
 	HEALTHSTATUS                string `json:"HEALTHSTATUS"`
 	HYPERCDPSCHEDULEDISABLE     string `json:"HYPERCDPSCHEDULEDISABLE"`
-	ID                          string `json:"ID"`
+	ID                          int    `json:"ID,string"`
 	IOCLASSID                   string `json:"IOCLASSID"`
 	IOPRIORITY                  string `json:"IOPRIORITY"`
-	ISADD2LUNGROUP              string `json:"ISADD2LUNGROUP"`
+	ISADD2LUNGROUP              bool   `json:"ISADD2LUNGROUP,string"`
 	ISCHECKZEROPAGE             string `json:"ISCHECKZEROPAGE"`
 	ISCLONE                     string `json:"ISCLONE"`
 	ISCSITHINLUNTHRESHOLD       string `json:"ISCSITHINLUNTHRESHOLD"`
@@ -50,7 +50,7 @@ type LUN struct {
 	MIRRORTYPE                  string `json:"MIRRORTYPE"`
 	NAME                        string `json:"NAME"`
 	OWNINGCONTROLLER            string `json:"OWNINGCONTROLLER"`
-	PARENTID                    string `json:"PARENTID"`
+	PARENTID                    int    `json:"PARENTID,string"`
 	PARENTNAME                  string `json:"PARENTNAME"`
 	PREFETCHPOLICY              string `json:"PREFETCHPOLICY"`
 	PREFETCHVALUE               string `json:"PREFETCHVALUE"`
@@ -139,8 +139,8 @@ func (d *Device) GetLUNs(ctx context.Context, query *SearchQuery) ([]LUN, error)
 	return luns, nil
 }
 
-func (d *Device) GetLUN(ctx context.Context, lunId string) (*LUN, error) {
-	spath := fmt.Sprintf("/lun/%s", lunId)
+func (d *Device) GetLUN(ctx context.Context, lunID int) (*LUN, error) {
+	spath := fmt.Sprintf("/lun/%d", lunID)
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
@@ -208,8 +208,8 @@ func (d *Device) CreateLUN(ctx context.Context, u uuid.UUID, capacityGB int, sto
 	return lun, nil
 }
 
-func (d *Device) DeleteLUN(ctx context.Context, id string) error {
-	spath := fmt.Sprintf("/lun/%s", id)
+func (d *Device) DeleteLUN(ctx context.Context, lunID int) error {
+	spath := fmt.Sprintf("/lun/%d", lunID)
 	req, err := d.newRequest(ctx, "DELETE", spath, nil)
 	if err != nil {
 		return fmt.Errorf(ErrCreateRequest+": %w", err)
@@ -228,14 +228,14 @@ func (d *Device) DeleteLUN(ctx context.Context, id string) error {
 	return nil
 }
 
-func (d *Device) ExpandLUN(ctx context.Context, id string, newLunSizeGb int) error {
+func (d *Device) ExpandLUN(ctx context.Context, lunID int, newLunSizeGb int) error {
 	spath := "/lun/expand"
 	param := struct {
 		ID       string `json:"ID"`
 		TYPE     int    `json:"TYPE"`
 		CAPACITY uint64 `json:"CAPACITY"`
 	}{
-		ID:       id,
+		ID:       strconv.Itoa(lunID),
 		TYPE:     TypeLUN,
 		CAPACITY: uint64(newLunSizeGb * CapacityUnit),
 	}
@@ -298,9 +298,8 @@ func (d *Device) GetHostLUNID(ctx context.Context, lunID, hostID int) (string, e
 		return "", fmt.Errorf("failed to get associated LUNs: %w", err)
 	}
 
-	strLunID := strconv.Itoa(lunID)
 	for _, lun := range luns {
-		if lun.ID == strLunID {
+		if lun.ID == lunID {
 			jsonStr := lun.ASSOCIATEMETADATA
 			hostLunId := ASSOCIATEMETADATA{}
 			err := json.Unmarshal([]byte(jsonStr), &hostLunId)

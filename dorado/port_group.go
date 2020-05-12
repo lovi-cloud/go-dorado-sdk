@@ -3,13 +3,14 @@ package dorado
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/pkg/errors"
 )
 
 type PortGroup struct {
 	DESCRIPTION string `json:"DESCRIPTION"`
-	ID          string `json:"ID"`
+	ID          int    `json:"ID,string"`
 	NAME        string `json:"NAME"`
 	TYPE        int    `json:"TYPE"`
 }
@@ -44,8 +45,8 @@ func (d *Device) GetPortGroups(ctx context.Context, query *SearchQuery) ([]PortG
 	return portgroups, nil
 }
 
-func (d *Device) GetPortGroup(ctx context.Context, portgroupId string) (*PortGroup, error) {
-	spath := fmt.Sprintf("/portgroup/%s", portgroupId)
+func (d *Device) GetPortGroup(ctx context.Context, portgroupID int) (*PortGroup, error) {
+	spath := fmt.Sprintf("/portgroup/%d", portgroupID)
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
@@ -64,7 +65,7 @@ func (d *Device) GetPortGroup(ctx context.Context, portgroupId string) (*PortGro
 	return portgroup, nil
 }
 
-func (d *Device) GetPortGroupsAssociate(ctx context.Context, mappingviewId string) ([]PortGroup, error) {
+func (d *Device) GetPortGroupsAssociate(ctx context.Context, mappingviewID int) ([]PortGroup, error) {
 	spath := "/portgroup/associate"
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
@@ -72,7 +73,7 @@ func (d *Device) GetPortGroupsAssociate(ctx context.Context, mappingviewId strin
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	param := &AssociateParam{
-		ASSOCIATEOBJID:   mappingviewId,
+		ASSOCIATEOBJID:   strconv.Itoa(mappingviewID),
 		ASSOCIATEOBJTYPE: TypeMappingView,
 	}
 	req = AddAssociateParam(req, param)
@@ -89,14 +90,14 @@ func (d *Device) GetPortGroupsAssociate(ctx context.Context, mappingviewId strin
 	return portgroups, nil
 }
 
-func (d *Device) IsAddToMappingViewPortGroup(ctx context.Context, mappingViewId, portgroupId string) (bool, error) {
-	portgroups, err := d.GetPortGroupsAssociate(ctx, mappingViewId)
+func (d *Device) IsAddToMappingViewPortGroup(ctx context.Context, mappingViewID, portgroupID int) (bool, error) {
+	portgroups, err := d.GetPortGroupsAssociate(ctx, mappingViewID)
 	if err != nil {
 		return false, fmt.Errorf("failed to get portgroups: %w", err)
 	}
 
 	for _, p := range portgroups {
-		if p.ID == portgroupId {
+		if p.ID == portgroupID {
 			return true, nil
 		}
 	}

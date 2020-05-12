@@ -38,12 +38,12 @@ type HyperMetroPair struct {
 	LINKSTATUS               string `json:"LINKSTATUS"`
 	LOCALDATASTATE           string `json:"LOCALDATASTATE"`
 	LOCALHOSTACCESSSTATE     string `json:"LOCALHOSTACCESSSTATE"`
-	LOCALOBJID               string `json:"LOCALOBJID"`
+	LOCALOBJID               int    `json:"LOCALOBJID,string"`
 	LOCALOBJNAME             string `json:"LOCALOBJNAME"`
 	RECOVERYPOLICY           string `json:"RECOVERYPOLICY"`
 	REMOTEDATASTATE          string `json:"REMOTEDATASTATE"`
 	REMOTEHOSTACCESSSTATE    string `json:"REMOTEHOSTACCESSSTATE"`
-	REMOTEOBJID              string `json:"REMOTEOBJID"`
+	REMOTEOBJID              int    `json:"REMOTEOBJID,string"`
 	REMOTEOBJNAME            string `json:"REMOTEOBJNAME"`
 	RESOURCEWWN              string `json:"RESOURCEWWN"`
 	RUNNINGSTATUS            string `json:"RUNNINGSTATUS"`
@@ -91,8 +91,8 @@ func (c *Client) GetHyperMetroPairs(ctx context.Context, query *SearchQuery) ([]
 	return hyperMetroPairs, nil
 }
 
-func (c *Client) GetHyperMetroPair(ctx context.Context, hyperMetroPairId string) (*HyperMetroPair, error) {
-	spath := fmt.Sprintf("/HyperMetroPair/%s", hyperMetroPairId)
+func (c *Client) GetHyperMetroPair(ctx context.Context, hyperMetroPairID string) (*HyperMetroPair, error) {
+	spath := fmt.Sprintf("/HyperMetroPair/%s", hyperMetroPairID)
 
 	req, err := c.LocalDevice.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
@@ -111,15 +111,15 @@ func (c *Client) GetHyperMetroPair(ctx context.Context, hyperMetroPairId string)
 	return hyperMetroPair, nil
 }
 
-func (c *Client) CreateHyperMetroPair(ctx context.Context, hyperMetroDomainId, localLunId, remoteLunId string) (*HyperMetroPair, error) {
+func (c *Client) CreateHyperMetroPair(ctx context.Context, hyperMetroDomainID string, localLunID, remoteLunID int) (*HyperMetroPair, error) {
 	spath := "/HyperMetroPair"
 	param := &HyperMetroPairParam{
 		RECONVERYPOLICY: "1",
-		DOMAINID:        hyperMetroDomainId,
+		DOMAINID:        hyperMetroDomainID,
 		SPEED:           2,
 		HCRESOURCETYPE:  "1",
-		REMOTEOBJID:     remoteLunId,
-		LOCALOBJID:      localLunId,
+		REMOTEOBJID:     strconv.Itoa(remoteLunID),
+		LOCALOBJID:      strconv.Itoa(localLunID),
 		ISFIRSTSYNC:     false,
 	}
 
@@ -144,9 +144,9 @@ func (c *Client) CreateHyperMetroPair(ctx context.Context, hyperMetroDomainId, l
 	return hyperMetroPair, nil
 }
 
-func (c *Client) DeleteHyperMetroPair(ctx context.Context, hyperMetroPairId string) error {
+func (c *Client) DeleteHyperMetroPair(ctx context.Context, hyperMetroPairID string) error {
 	// must be suspend HyperMetro Pair before call this method.
-	spath := fmt.Sprintf("/HyperMetroPair/%s", hyperMetroPairId)
+	spath := fmt.Sprintf("/HyperMetroPair/%s", hyperMetroPairID)
 
 	req, err := c.LocalDevice.newRequest(ctx, "DELETE", spath, nil)
 	if err != nil {
@@ -165,13 +165,13 @@ func (c *Client) DeleteHyperMetroPair(ctx context.Context, hyperMetroPairId stri
 	return nil
 }
 
-func (c *Client) SuspendHyperMetroPair(ctx context.Context, hyperMetroPairId string) error {
+func (c *Client) SuspendHyperMetroPair(ctx context.Context, hyperMetroPairID string) error {
 	spath := "/HyperMetroPair/disable_hcpair"
 	param := struct {
 		ID   string `json:"ID"`
 		TYPE string `json:"TYPE"`
 	}{
-		ID:   hyperMetroPairId,
+		ID:   hyperMetroPairID,
 		TYPE: strconv.Itoa(TypeHyperMetroPair),
 	}
 	jb, err := json.Marshal(param)
@@ -196,13 +196,13 @@ func (c *Client) SuspendHyperMetroPair(ctx context.Context, hyperMetroPairId str
 	return nil
 }
 
-func (c *Client) SyncHyperMetroPair(ctx context.Context, hyperMetroPairId string) error {
+func (c *Client) SyncHyperMetroPair(ctx context.Context, hyperMetroPairID string) error {
 	spath := "/HyperMetroPair/synchronize_hcpair"
 	param := struct {
 		ID   string `json:"ID"`
 		TYPE string `json:"TYPE"`
 	}{
-		ID:   hyperMetroPairId,
+		ID:   hyperMetroPairID,
 		TYPE: strconv.Itoa(TypeHyperMetroPair),
 	}
 	jb, err := json.Marshal(param)

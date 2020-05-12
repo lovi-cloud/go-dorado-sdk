@@ -117,10 +117,10 @@ func (d *Device) GetStoragePools(ctx context.Context, query *SearchQuery) ([]Sto
 	return storagePools, nil
 }
 
-func (d *Device) GetStoragePool(ctx context.Context, storagePoolId int) (*StoragePool, error) {
+func (d *Device) GetStoragePool(ctx context.Context, storagePoolID int) (*StoragePool, error) {
 	var storagePool *StoragePool
 
-	spath := fmt.Sprintf("/storagepool/%d", storagePoolId)
+	spath := fmt.Sprintf("/storagepool/%d", storagePoolID)
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)

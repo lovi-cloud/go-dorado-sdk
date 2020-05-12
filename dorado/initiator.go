@@ -14,7 +14,7 @@ import (
 type Initiator struct {
 	FAILOVERMODE    string `json:"FAILOVERMODE"`
 	HEALTHSTATUS    string `json:"HEALTHSTATUS"`
-	ID              string `json:"ID"`
+	ID              string `json:"ID"` // = IQN
 	ISFREE          string `json:"ISFREE"`
 	MULTIPATHTYPE   string `json:"MULTIPATHTYPE"`
 	OPERATIONSYSTEM string `json:"OPERATIONSYSTEM"`

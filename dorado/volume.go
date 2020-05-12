@@ -10,7 +10,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-func (c *Client) CreateVolume(ctx context.Context, name uuid.UUID, capacityGB int, storagePoolName, hyperMetroDomainId string) (*HyperMetroPair, error) {
+func (c *Client) CreateVolume(ctx context.Context, name uuid.UUID, capacityGB int, storagePoolName, hyperMetroDomainID string) (*HyperMetroPair, error) {
 	// create volume (= hypermetro enabled lun)
 	localLun, err := c.LocalDevice.CreateLUN(ctx, name, capacityGB, storagePoolName)
 	if err != nil {
@@ -22,7 +22,7 @@ func (c *Client) CreateVolume(ctx context.Context, name uuid.UUID, capacityGB in
 		return nil, fmt.Errorf("failed to create lun in remote device: %w", err)
 	}
 
-	hyperMetroPair, err := c.CreateHyperMetroPair(ctx, hyperMetroDomainId, localLun.ID, remoteLun.ID)
+	hyperMetroPair, err := c.CreateHyperMetroPair(ctx, hyperMetroDomainID, localLun.ID, remoteLun.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create HyperMetroPair: %w", err)
 	}
@@ -30,12 +30,12 @@ func (c *Client) CreateVolume(ctx context.Context, name uuid.UUID, capacityGB in
 	return hyperMetroPair, nil
 }
 
-func (c *Client) DeleteVolume(ctx context.Context, hyperMetroPairId string) error {
+func (c *Client) DeleteVolume(ctx context.Context, hyperMetroPairID string) error {
 	// 1: delete HyperMetro Pair
 	// 2: delete LUN Group Associate
 	// 3: delete LUN
 
-	hmp, err := c.GetHyperMetroPair(ctx, hyperMetroPairId)
+	hmp, err := c.GetHyperMetroPair(ctx, hyperMetroPairID)
 	if err != nil {
 		return fmt.Errorf("failed to get HyperMetro Pair: %w", err)
 	}
@@ -45,7 +45,7 @@ func (c *Client) DeleteVolume(ctx context.Context, hyperMetroPairId string) erro
 	if err != nil {
 		return fmt.Errorf("failed to get lun information: %w", err)
 	}
-	if llun.ISADD2LUNGROUP == "true" {
+	if llun.ISADD2LUNGROUP == true {
 		lLungroup, err := c.LocalDevice.GetLunGroupByLunId(ctx, hmp.LOCALOBJID)
 		if err != nil {
 			return fmt.Errorf("failed to get lungroup by associated lun: %w", err)
@@ -60,7 +60,7 @@ func (c *Client) DeleteVolume(ctx context.Context, hyperMetroPairId string) erro
 	if err != nil {
 		return fmt.Errorf("failed to get lun information: %w", err)
 	}
-	if rlun.ISADD2LUNGROUP == "true" {
+	if rlun.ISADD2LUNGROUP == true {
 		rLungroup, err := c.RemoteDevice.GetLunGroupByLunId(ctx, hmp.REMOTEOBJID)
 		if err != nil {
 			return fmt.Errorf("failed to get lungroup by associated lun: %w", err)
@@ -96,13 +96,13 @@ func (c *Client) DeleteVolume(ctx context.Context, hyperMetroPairId string) erro
 	return nil
 }
 
-func (c *Client) ExtendVolume(ctx context.Context, hyperMetroPairId string, newVolumeSizeGb int) error {
+func (c *Client) ExtendVolume(ctx context.Context, hyperMetroPairID string, newVolumeSizeGb int) error {
 	// 1: Suspend HyperMetro Pair
 	// 2: Expand LUN
 	// 3: Re-sync HyperMetro Pair
 
 	// 1: Suspend HyperMetro Pair
-	hmp, err := c.GetHyperMetroPair(ctx, hyperMetroPairId)
+	hmp, err := c.GetHyperMetroPair(ctx, hyperMetroPairID)
 	if err != nil {
 		return fmt.Errorf("failed to get HyperMetro Pair: %w", err)
 	}
@@ -131,8 +131,8 @@ func (c *Client) ExtendVolume(ctx context.Context, hyperMetroPairId string, newV
 	return nil
 }
 
-func (c *Client) AttachVolume(ctx context.Context, hyperMetroPairId, hostname, iqn string) error {
-	volume, err := c.GetHyperMetroPair(ctx, hyperMetroPairId)
+func (c *Client) AttachVolume(ctx context.Context, hyperMetroPairID, hostname, iqn string) error {
+	volume, err := c.GetHyperMetroPair(ctx, hyperMetroPairID)
 	if err != nil {
 		return fmt.Errorf("failed to get volume information: %w", err)
 	}
@@ -149,7 +149,7 @@ func (c *Client) AttachVolume(ctx context.Context, hyperMetroPairId, hostname, i
 	return nil
 }
 
-func (d *Device) AttachVolume(ctx context.Context, portgroupName, hostname, iqn, lunId string) error {
+func (d *Device) AttachVolume(ctx context.Context, portgroupName, hostname, iqn string, lunID int) error {
 	// wrapper function for client.AttachVolume
 	portgroups, err := d.GetPortGroups(ctx, NewSearchQueryName(portgroupName))
 	if err != nil {
@@ -172,7 +172,7 @@ func (d *Device) AttachVolume(ctx context.Context, portgroupName, hostname, iqn,
 		ID:         iqn,
 		TYPE:       strconv.Itoa(TypeInitiator),
 		USECHAP:    "false",
-		PARENTID:   host.ID,
+		PARENTID:   strconv.Itoa(host.ID),
 		PARENTTYPE: strconv.Itoa(TypeHost),
 	}
 	_, err = d.UpdateInitiator(ctx, iqn, initiatorUpdateParam) // set PARENTID (= host.ID)
@@ -185,7 +185,7 @@ func (d *Device) AttachVolume(ctx context.Context, portgroupName, hostname, iqn,
 		return fmt.Errorf("failed to get lungroup: %w", err)
 	}
 
-	err = d.AssociateLun(ctx, lungroup.ID, lunId)
+	err = d.AssociateLun(ctx, lungroup.ID, lunID)
 	if err != nil {
 		return fmt.Errorf("failed to associate lun to lungroup: %w", err)
 	}
@@ -221,8 +221,8 @@ func (c *Client) DetachVolume(ctx context.Context, hyperMetroPairId string) erro
 	return nil
 }
 
-func (d *Device) DetachVolume(ctx context.Context, lunId string) error {
-	lun, err := d.GetLUN(ctx, lunId)
+func (d *Device) DetachVolume(ctx context.Context, lunID int) error {
+	lun, err := d.GetLUN(ctx, lunID)
 	if err != nil {
 		return fmt.Errorf("failed to get LUN: %w", err)
 	}

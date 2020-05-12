@@ -12,8 +12,8 @@ import (
 
 type MappingView struct {
 	DESCRIPTION         string `json:"DESCRIPTION"`
-	ENABLEINBANDCOMMAND string `json:"ENABLEINBANDCOMMAND"`
-	ID                  string `json:"ID"`
+	ENABLEINBANDCOMMAND bool   `json:"ENABLEINBANDCOMMAND,string"`
+	ID                  int    `json:"ID,string"`
 	INBANDLUNWWN        string `json:"INBANDLUNWWN"`
 	NAME                string `json:"NAME"`
 	TYPE                int    `json:"TYPE"`
@@ -49,8 +49,8 @@ func (d *Device) GetMappingViews(ctx context.Context, query *SearchQuery) ([]Map
 	return mappingviews, nil
 }
 
-func (d *Device) GetMappingView(ctx context.Context, mappingviewId string) (*MappingView, error) {
-	spath := fmt.Sprintf("/mappingview/%s", mappingviewId)
+func (d *Device) GetMappingView(ctx context.Context, mappingviewID int) (*MappingView, error) {
+	spath := fmt.Sprintf("/mappingview/%d", mappingviewID)
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
@@ -100,8 +100,8 @@ func (d *Device) CreateMappingView(ctx context.Context, hostname string) (*Mappi
 	return mappingview, nil
 }
 
-func (d *Device) DeleteMappingView(ctx context.Context, mappingviewId string) error {
-	spath := fmt.Sprintf("/mappingview/%s", mappingviewId)
+func (d *Device) DeleteMappingView(ctx context.Context, mappingviewID int) error {
+	spath := fmt.Sprintf("/mappingview/%d", mappingviewID)
 
 	req, err := d.newRequest(ctx, "DELETE", spath, nil)
 	if err != nil {
@@ -145,7 +145,7 @@ func (d *Device) AssociateMappingView(ctx context.Context, param AssociateParam)
 }
 
 func (d *Device) DisAssociateMappingView(ctx context.Context, param AssociateParam) error {
-	spath := "mappingview/remove_associate"
+	spath := "/mappingview/remove_associate"
 
 	jb, err := json.Marshal(param)
 	if err != nil {
@@ -185,37 +185,37 @@ func (d *Device) GetMappingViewForce(ctx context.Context, hostname string) (*Map
 	return &mappingviews[0], nil
 }
 
-func (d *Device) DoMapping(ctx context.Context, mappingview *MappingView, hostgroup *HostGroup, lungroup *LunGroup, portgroupId string) error {
+func (d *Device) DoMapping(ctx context.Context, mappingview *MappingView, hostgroup *HostGroup, lungroup *LunGroup, portgroupID int) error {
 	param := AssociateParam{
-		ID:   mappingview.ID,
+		ID:   strconv.Itoa(mappingview.ID),
 		TYPE: strconv.Itoa(TypeMappingView),
 	}
 
-	if hostgroup.ISADD2MAPPINGVIEW == "false" {
+	if hostgroup.ISADD2MAPPINGVIEW == false {
 		param.ASSOCIATEOBJTYPE = TypeHostGroup
-		param.ASSOCIATEOBJID = hostgroup.ID
+		param.ASSOCIATEOBJID = strconv.Itoa(hostgroup.ID)
 		err := d.AssociateMappingView(ctx, param)
 		if err != nil {
 			return fmt.Errorf("failed to associate hostgroup: %w", err)
 		}
 	}
 
-	if lungroup.ISADD2MAPPINGVIEW == "false" {
+	if lungroup.ISADD2MAPPINGVIEW == false {
 		param.ASSOCIATEOBJTYPE = TypeLUNGroup
-		param.ASSOCIATEOBJID = lungroup.ID
+		param.ASSOCIATEOBJID = strconv.Itoa(lungroup.ID)
 		err := d.AssociateMappingView(ctx, param)
 		if err != nil {
 			return fmt.Errorf("failed to associate lungroup: %w", err)
 		}
 	}
 
-	isExist, err := d.IsAddToMappingViewPortGroup(ctx, mappingview.ID, portgroupId)
+	isExist, err := d.IsAddToMappingViewPortGroup(ctx, mappingview.ID, portgroupID)
 	if err != nil {
 		return fmt.Errorf("failed to get portgroup: %w", err)
 	}
 	if isExist == false {
 		param.ASSOCIATEOBJTYPE = TypePortGroup
-		param.ASSOCIATEOBJID = portgroupId
+		param.ASSOCIATEOBJID = strconv.Itoa(portgroupID)
 		err := d.AssociateMappingView(ctx, param)
 		if err != nil {
 			return fmt.Errorf("failed to associate portgroup: %w", err)

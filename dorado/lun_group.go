@@ -13,8 +13,8 @@ import (
 type LunGroup struct {
 	CAPCITY            string `json:"CAPCITY"`
 	DESCRIPTION        string `json:"DESCRIPTION"`
-	ID                 string `json:"ID"`
-	ISADD2MAPPINGVIEW  string `json:"ISADD2MAPPINGVIEW"`
+	ID                 int    `json:"ID,string"`
+	ISADD2MAPPINGVIEW  bool   `json:"ISADD2MAPPINGVIEW,string"`
 	NAME               string `json:"NAME"`
 	SMARTQOSPOLICYID   string `json:"SMARTQOSPOLICYID"`
 	TYPE               int    `json:"TYPE"`
@@ -50,8 +50,8 @@ func (d *Device) GetLunGroups(ctx context.Context, query *SearchQuery) ([]LunGro
 	return lunGroups, nil
 }
 
-func (d *Device) GetLunGroup(ctx context.Context, lungroupId string) (*LunGroup, error) {
-	spath := fmt.Sprintf("/lungroup/%s", lungroupId)
+func (d *Device) GetLunGroup(ctx context.Context, lungroupID int) (*LunGroup, error) {
+	spath := fmt.Sprintf("/lungroup/%d", lungroupID)
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
@@ -103,8 +103,8 @@ func (d *Device) CreateLunGroup(ctx context.Context, hostname string) (*LunGroup
 	return lunGroup, nil
 }
 
-func (d *Device) DeleteLunGroup(ctx context.Context, lungroupId string) error {
-	spath := fmt.Sprintf("/lungroup/%s", lungroupId)
+func (d *Device) DeleteLunGroup(ctx context.Context, lungroupID int) error {
+	spath := fmt.Sprintf("/lungroup/%d", lungroupID)
 
 	req, err := d.newRequest(ctx, "DELETE", spath, nil)
 	if err != nil {
@@ -123,11 +123,11 @@ func (d *Device) DeleteLunGroup(ctx context.Context, lungroupId string) error {
 	return nil
 }
 
-func (d *Device) AssociateLun(ctx context.Context, lungroupId, lunId string) error {
+func (d *Device) AssociateLun(ctx context.Context, lungroupID, lunID int) error {
 	spath := "/lungroup/associate"
 	param := AssociateParam{
-		ID:               lungroupId,
-		ASSOCIATEOBJID:   lunId,
+		ID:               strconv.Itoa(lungroupID),
+		ASSOCIATEOBJID:   strconv.Itoa(lunID),
 		ASSOCIATEOBJTYPE: TypeLUN,
 	}
 	jb, err := json.Marshal(param)
@@ -152,11 +152,11 @@ func (d *Device) AssociateLun(ctx context.Context, lungroupId, lunId string) err
 	return nil
 }
 
-func (d *Device) DisAssociateLun(ctx context.Context, lungroupId, lunId string) error {
+func (d *Device) DisAssociateLun(ctx context.Context, lungroupID, lunID int) error {
 	spath := "/lungroup/associate"
 	param := &AssociateParam{
-		ID:               lungroupId,
-		ASSOCIATEOBJID:   lunId,
+		ID:               strconv.Itoa(lungroupID),
+		ASSOCIATEOBJID:   strconv.Itoa(lunID),
 		ASSOCIATEOBJTYPE: TypeLUN,
 	}
 
@@ -199,10 +199,10 @@ func (d *Device) GetAssociateLunGroups(ctx context.Context, query *SearchQuery) 
 	return lungroups, nil
 }
 
-func (d *Device) GetLunGroupByLunId(ctx context.Context, lunId string) (*LunGroup, error) {
+func (d *Device) GetLunGroupByLunId(ctx context.Context, lunID int) (*LunGroup, error) {
 	query := &SearchQuery{
 		AssociateObjType: strconv.Itoa(TypeLUN),
-		AssociateObjID:   lunId,
+		AssociateObjID:   strconv.Itoa(lunID),
 		Type:             strconv.Itoa(TypeLUNGroup),
 	}
 

@@ -15,8 +15,8 @@ import (
 
 type HostGroup struct {
 	DESCRIPTION       string `json:"DESCRIPTION"`
-	ID                string `json:"ID"`
-	ISADD2MAPPINGVIEW string `json:"ISADD2MAPPINGVIEW"`
+	ID                int    `json:"ID,string"`
+	ISADD2MAPPINGVIEW bool   `json:"ISADD2MAPPINGVIEW,string"`
 	NAME              string `json:"NAME"`
 	TYPE              int    `json:"TYPE"`
 }
@@ -50,8 +50,8 @@ func (d *Device) GetHostGroups(ctx context.Context, query *SearchQuery) ([]HostG
 	return hostGroups, nil
 }
 
-func (d *Device) GetHostGroup(ctx context.Context, hostgroupId string) (*HostGroup, error) {
-	spath := fmt.Sprintf("/hostgroup/%s", hostgroupId)
+func (d *Device) GetHostGroup(ctx context.Context, hostgroupID int) (*HostGroup, error) {
+	spath := fmt.Sprintf("/hostgroup/%d", hostgroupID)
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
@@ -100,8 +100,8 @@ func (d *Device) CreateHostGroup(ctx context.Context, hostname string) (*HostGro
 	return hg, nil
 }
 
-func (d *Device) DeleteHostGroup(ctx context.Context, hostGroupId string) error {
-	spath := fmt.Sprintf("/hostgroup/%s", hostGroupId)
+func (d *Device) DeleteHostGroup(ctx context.Context, hostGroupID int) error {
+	spath := fmt.Sprintf("/hostgroup/%d", hostGroupID)
 
 	req, err := d.newRequest(ctx, "DELETE", spath, nil)
 	if err != nil {
@@ -120,11 +120,11 @@ func (d *Device) DeleteHostGroup(ctx context.Context, hostGroupId string) error 
 	return nil
 }
 
-func (d *Device) AssociateHost(ctx context.Context, hostgroupId, hostId string) error {
+func (d *Device) AssociateHost(ctx context.Context, hostgroupID, hostID int) error {
 	spath := "/hostgroup/associate"
 	param := AssociateParam{
-		ID:               hostgroupId,
-		ASSOCIATEOBJID:   hostId,
+		ID:               strconv.Itoa(hostgroupID),
+		ASSOCIATEOBJID:   strconv.Itoa(hostID),
 		ASSOCIATEOBJTYPE: TypeHost,
 	}
 	fmt.Printf("%+v\n", param)
@@ -150,7 +150,7 @@ func (d *Device) AssociateHost(ctx context.Context, hostgroupId, hostId string) 
 	return nil
 }
 
-func (d *Device) DisAssociateHost(ctx context.Context, hostgroupId, hostId string) error {
+func (d *Device) DisAssociateHost(ctx context.Context, hostgroupID, hostID int) error {
 	spath := "/host/associate"
 
 	req, err := d.newRequest(ctx, "DELETE", spath, nil)
@@ -158,8 +158,8 @@ func (d *Device) DisAssociateHost(ctx context.Context, hostgroupId, hostId strin
 		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	q := req.URL.Query()
-	q.Add("ID", hostgroupId)
-	q.Add("ASSOCIATEOBJID", hostId)
+	q.Add("ID", strconv.Itoa(hostgroupID))
+	q.Add("ASSOCIATEOBJID", strconv.Itoa(hostID))
 	q.Add("ASSOCIATEOBJTYPE", strconv.Itoa(TypeHost))
 	q.Add("TYPE", strconv.Itoa(TypeHostGroup))
 	req.URL.RawQuery = q.Encode()
@@ -196,8 +196,8 @@ func (d *Device) CreateHostGroupWithHost(ctx context.Context, hostname string) (
 	return hostgroup, host, nil
 }
 
-func (d *Device) DeleteHostGroupWithHost(ctx context.Context, hostgroupId string) error {
-	hostgroup, err := d.GetHostGroup(ctx, hostgroupId)
+func (d *Device) DeleteHostGroupWithHost(ctx context.Context, hostgroupID int) error {
+	hostgroup, err := d.GetHostGroup(ctx, hostgroupID)
 	if err != nil {
 		return fmt.Errorf("failed to search hostgroup by ID: %w", err)
 	}
@@ -240,7 +240,7 @@ func (d *Device) GetHostGroupForce(ctx context.Context, hostname string) (*HostG
 
 	if len(hostgroups) != 1 {
 		// hostgroup is must be unique
-		return nil, nil, fmt.Errorf("fount multiple hostgroup in same hostname: %w", err)
+		return nil, nil, fmt.Errorf("fount multiple hostgroup in same hostname (hostname: %s)", hostname)
 	}
 	hostgroup := hostgroups[0]
 
@@ -255,7 +255,7 @@ func (d *Device) GetHostGroupForce(ctx context.Context, hostname string) (*HostG
 	}
 	host := hosts[0]
 
-	if host.ISADD2HOSTGROUP == "false" {
+	if host.ISADD2HOSTGROUP == false {
 		err = d.AssociateHost(ctx, hostgroup.ID, host.ID)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to associate host to hostgroup: %w", err)

@@ -15,10 +15,10 @@ import (
 type Host struct {
 	DESCRIPTION     string `json:"DESCRIPTION"`
 	HEALTHSTATUS    string `json:"HEALTHSTATUS"`
-	ID              string `json:"ID"`
+	ID              int    `json:"ID,string"`
 	INITIATORNUM    string `json:"INITIATORNUM"`
 	IP              string `json:"IP"`
-	ISADD2HOSTGROUP string `json:"ISADD2HOSTGROUP"`
+	ISADD2HOSTGROUP bool   `json:"ISADD2HOSTGROUP,string"`
 	LOCATION        string `json:"LOCATION"`
 	MODEL           string `json:"MODEL"`
 	NAME            string `json:"NAME"`
@@ -70,8 +70,8 @@ func (d *Device) GetHosts(ctx context.Context, query *SearchQuery) ([]Host, erro
 	return hosts, nil
 }
 
-func (d *Device) GetHost(ctx context.Context, hostId string) (*Host, error) {
-	spath := fmt.Sprintf("/host/%s", hostId)
+func (d *Device) GetHost(ctx context.Context, hostID int) (*Host, error) {
+	spath := fmt.Sprintf("/host/%d", hostID)
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
 	if err != nil {
@@ -124,8 +124,8 @@ func (d *Device) CreateHost(ctx context.Context, hostname string) (*Host, error)
 	return host, nil
 }
 
-func (d *Device) DeleteHost(ctx context.Context, hostId string) error {
-	spath := fmt.Sprintf("/host/%s", hostId)
+func (d *Device) DeleteHost(ctx context.Context, hostID int) error {
+	spath := fmt.Sprintf("/host/%d", hostID)
 
 	req, err := d.newRequest(ctx, "DELETE", spath, nil)
 	if err != nil {
