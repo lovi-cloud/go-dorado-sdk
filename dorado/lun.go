@@ -287,7 +287,7 @@ func (d *Device) GetAssociateLUNs(ctx context.Context, query *SearchQuery) ([]LU
 }
 
 // GetHostLUNID get LUN ID per host.
-func (d *Device) GetHostLUNID(ctx context.Context, lunID, hostID int) (string, error) {
+func (d *Device) GetHostLUNID(ctx context.Context, lunID, hostID int) (int, error) {
 	query := &SearchQuery{
 		AssociateObjType: strconv.Itoa(TypeHost),
 		AssociateObjID:   strconv.Itoa(hostID),
@@ -295,7 +295,7 @@ func (d *Device) GetHostLUNID(ctx context.Context, lunID, hostID int) (string, e
 
 	luns, err := d.GetAssociateLUNs(ctx, query)
 	if err != nil {
-		return "", fmt.Errorf("failed to get associated LUNs: %w", err)
+		return 0, fmt.Errorf("failed to get associated LUNs: %w", err)
 	}
 
 	for _, lun := range luns {
@@ -304,12 +304,12 @@ func (d *Device) GetHostLUNID(ctx context.Context, lunID, hostID int) (string, e
 			hostLunId := ASSOCIATEMETADATA{}
 			err := json.Unmarshal([]byte(jsonStr), &hostLunId)
 			if err != nil {
-				return "", fmt.Errorf("failed to parse ASSOCIATEMETADATA: %w", err)
+				return 0, fmt.Errorf("failed to parse ASSOCIATEMETADATA: %w", err)
 			}
 
-			return strconv.Itoa(hostLunId.HostLUNID), nil
+			return hostLunId.HostLUNID, nil
 		}
 	}
 
-	return "", fmt.Errorf("LUN (ID: %d) is not associated host (ID: %d)", lunID, hostID)
+	return 0, fmt.Errorf("LUN (ID: %d) is not associated host (ID: %d)", lunID, hostID)
 }
