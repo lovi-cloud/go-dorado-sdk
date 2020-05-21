@@ -275,7 +275,7 @@ func (d *Device) GetAssociateLUNs(ctx context.Context, query *SearchQuery) ([]LU
 	}
 
 	luns := []LUN{}
-	if err = decodeBody(resp, luns); err != nil {
+	if err = decodeBody(resp, &luns); err != nil {
 		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
