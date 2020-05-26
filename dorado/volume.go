@@ -30,13 +30,18 @@ func (c *Client) CreateVolumeRaw(ctx context.Context, name uuid.UUID, capacityGB
 	return hyperMetroPair, nil
 }
 
-func (c *Client) CreateVolumeFromSource(ctx context.Context, name uuid.UUID, capacityGB int, storagePoolName, hyperMetroDomainID string, sourceHyperMetroPairID int) (*HyperMetroPair, error) {
-	localLun, err := c.LocalDevice.CreateLUNFromSource(ctx, sourceHyperMetroPairID, name, capacityGB, storagePoolName, hyperMetroDomainID)
+func (c *Client) CreateVolumeFromSource(ctx context.Context, name uuid.UUID, capacityGB int, storagePoolName, hyperMetroDomainID string, sourceHyperMetroPairID string) (*HyperMetroPair, error) {
+	source, err := c.GetHyperMetroPair(ctx, sourceHyperMetroPairID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get source HyperMetroPair: %w", err)
+	}
+
+	localLun, err := c.LocalDevice.CreateLUNFromSource(ctx, source.LOCALOBJID, name, capacityGB, storagePoolName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to crteate lun from source in local device: %w", err)
 	}
 
-	remoteLun, err := c.RemoteDevice.CreateLUNFromSource(ctx, sourceHyperMetroPairID, name, capacityGB, storagePoolName, hyperMetroDomainID)
+	remoteLun, err := c.RemoteDevice.CreateLUNFromSource(ctx, source.REMOTEOBJID, name, capacityGB, storagePoolName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to crteate lun from source in remote device: %w", err)
 	}
@@ -49,7 +54,7 @@ func (c *Client) CreateVolumeFromSource(ctx context.Context, name uuid.UUID, cap
 	return hyperMetroPair, nil
 }
 
-func (d *Device) CreateLUNFromSource(ctx context.Context, sourceLUNID int, name uuid.UUID, capacityGB int, storagePoolName, hyperMetroDomainID string) (*LUN, error) {
+func (d *Device) CreateLUNFromSource(ctx context.Context, sourceLUNID int, name uuid.UUID, capacityGB int, storagePoolName string) (*LUN, error) {
 	snapshot, err := d.CreateSnapshotWithWait(ctx, sourceLUNID, name.String(), "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create snapshot: %w", err)
