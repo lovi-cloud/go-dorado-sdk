@@ -55,7 +55,7 @@ func (c *Client) CreateVolumeFromSource(ctx context.Context, name uuid.UUID, cap
 }
 
 func (d *Device) CreateLUNFromSource(ctx context.Context, sourceLUNID int, name uuid.UUID, capacityGB int, storagePoolName string) (*LUN, error) {
-	snapshot, err := d.CreateSnapshotWithWait(ctx, sourceLUNID, name.String(), "")
+	snapshot, err := d.CreateSnapshotWithWait(ctx, sourceLUNID, name, "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create snapshot: %w", err)
 	}

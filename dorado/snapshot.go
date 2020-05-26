@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	uuid "github.com/satori/go.uuid"
+
 	"github.com/pkg/errors"
 )
 
@@ -52,6 +54,10 @@ type Snapshot struct {
 const (
 	ErrSnapshotNotFound = "snapshot is not found"
 )
+
+func EncodeSnapshotName(u uuid.UUID) string {
+	return EncodeLunName(u)
+}
 
 func (d *Device) GetSnapshots(ctx context.Context, query *SearchQuery) ([]Snapshot, error) {
 	spath := "/snapshot"
@@ -98,7 +104,7 @@ func (d *Device) GetSnapshot(ctx context.Context, snapshotID int) (*Snapshot, er
 	return snapshots, nil
 }
 
-func (d *Device) CreateSnapshot(ctx context.Context, lunID int, name, description string) (*Snapshot, error) {
+func (d *Device) CreateSnapshot(ctx context.Context, lunID int, name uuid.UUID, description string) (*Snapshot, error) {
 	spath := "/snapshot"
 	param := struct {
 		TYPE        string `json:"TYPE"`
@@ -108,7 +114,7 @@ func (d *Device) CreateSnapshot(ctx context.Context, lunID int, name, descriptio
 		DESCRIPTION string `json:"DESCRIPTION"`
 	}{
 		TYPE:        strconv.Itoa(TypeSnapshot),
-		NAME:        name,
+		NAME:        EncodeSnapshotName(name),
 		PARENTTYPE:  strconv.Itoa(TypeLUN),
 		PARENTID:    strconv.Itoa(lunID),
 		DESCRIPTION: description,
@@ -136,7 +142,7 @@ func (d *Device) CreateSnapshot(ctx context.Context, lunID int, name, descriptio
 }
 
 // CreateSnapshotWithWait create snapshot and waiting ready
-func (d *Device) CreateSnapshotWithWait(ctx context.Context, lunID int, name, description string) (*Snapshot, error) {
+func (d *Device) CreateSnapshotWithWait(ctx context.Context, lunID int, name uuid.UUID, description string) (*Snapshot, error) {
 	snapshot, err := d.CreateSnapshot(ctx, lunID, name, description)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create snapshot: %w", err)
