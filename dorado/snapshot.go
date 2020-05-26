@@ -152,6 +152,7 @@ func (d *Device) CreateSnapshotWithWait(ctx context.Context, lunID int, name uui
 	for i := 0; i < 10; i++ {
 		isReady, err := d.snapshotIsReady(ctx, snapshot.ID)
 		if err != nil {
+			d.DeleteSnapshot(ctx, snapshot.ID)
 			return nil, fmt.Errorf("failed to wait that snapshot is ready: %w", err)
 		}
 
