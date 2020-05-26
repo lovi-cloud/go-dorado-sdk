@@ -134,7 +134,7 @@ func (d *Device) CreateSnapshot(ctx context.Context, lunID int, name uuid.UUID, 
 	}
 
 	snapshot := &Snapshot{}
-	if err = decodeBody(resp, Snapshot{}); err != nil {
+	if err = decodeBody(resp, snapshot); err != nil {
 		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
