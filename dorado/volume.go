@@ -10,7 +10,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-func (c *Client) CreateVolume(ctx context.Context, name uuid.UUID, capacityGB int, storagePoolName, hyperMetroDomainID string) (*HyperMetroPair, error) {
+func (c *Client) CreateVolumeRaw(ctx context.Context, name uuid.UUID, capacityGB int, storagePoolName, hyperMetroDomainID string) (*HyperMetroPair, error) {
 	// create volume (= hypermetro enabled lun)
 	localLun, err := c.LocalDevice.CreateLUN(ctx, name, capacityGB, storagePoolName)
 	if err != nil {
@@ -28,6 +28,55 @@ func (c *Client) CreateVolume(ctx context.Context, name uuid.UUID, capacityGB in
 	}
 
 	return hyperMetroPair, nil
+}
+
+func (c *Client) CreateVolumeFromSource(ctx context.Context, name uuid.UUID, capacityGB int, storagePoolName, hyperMetroDomainID string, sourceHyperMetroPairID int) (*HyperMetroPair, error) {
+	localLun, err := c.LocalDevice.CreateLUNFromSource(ctx, sourceHyperMetroPairID, name, capacityGB, storagePoolName, hyperMetroDomainID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to crteate lun from source in local device: %w", err)
+	}
+
+	remoteLun, err := c.RemoteDevice.CreateLUNFromSource(ctx, sourceHyperMetroPairID, name, capacityGB, storagePoolName, hyperMetroDomainID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to crteate lun from source in remote device: %w", err)
+	}
+
+	hyperMetroPair, err := c.CreateHyperMetroPair(ctx, hyperMetroDomainID, localLun.ID, remoteLun.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create HyperMetroPair from source: %w", err)
+	}
+
+	return hyperMetroPair, nil
+}
+
+func (d *Device) CreateLUNFromSource(ctx context.Context, sourceLUNID int, name uuid.UUID, capacityGB int, storagePoolName, hyperMetroDomainID string) (*LUN, error) {
+	snapshot, err := d.CreateSnapshotWithWait(ctx, sourceLUNID, name.String(), "")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create snapshot: %w", err)
+	}
+	defer func() {
+		d.StopSnapshot(ctx, snapshot.ID)
+		d.DeleteSnapshot(ctx, snapshot.ID)
+	}()
+
+	targetLUN, err := d.CreateLUNWithWait(ctx, name, capacityGB, storagePoolName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create raw LUN: %w", err)
+	}
+
+	luncopy, err := d.CreateLUNCopy(ctx, snapshot.ID, targetLUN.ID)
+	if err != nil {
+		d.DeleteLUN(ctx, targetLUN.ID)
+		return nil, fmt.Errorf("failed to create luncopy object: %w", err)
+	}
+	defer d.DeleteLUNCopy(ctx, luncopy.ID)
+
+	err = d.StartLUNCopyWithWait(ctx, luncopy.ID, 0)
+	if err != nil {
+		return nil, fmt.Errorf("failed to copy lun: %w", err)
+	}
+
+	return d.GetLUN(ctx, targetLUN.ID)
 }
 
 func (c *Client) DeleteVolume(ctx context.Context, hyperMetroPairID string) error {

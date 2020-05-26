@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -206,6 +207,43 @@ func (d *Device) CreateLUN(ctx context.Context, u uuid.UUID, capacityGB int, sto
 	}
 
 	return lun, nil
+}
+
+// CreateLUNWithWait create LUN and waiting ready
+func (d *Device) CreateLUNWithWait(ctx context.Context, u uuid.UUID, capacityGB int, storagePoolName string) (*LUN, error) {
+	lun, err := d.CreateLUN(ctx, u, capacityGB, storagePoolName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create LUN: %w", err)
+	}
+
+	// wait 10 seconds
+	for i := 0; i < 10; i++ {
+		isReady, err := d.lunIsReady(ctx, lun.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to wait that LUN is ready: %w", err)
+		}
+
+		if isReady == true {
+			break
+		}
+
+		time.Sleep(1 * time.Second)
+	}
+
+	return d.GetLUN(ctx, lun.ID)
+}
+
+func (d *Device) lunIsReady(ctx context.Context, LUNID int) (bool, error) {
+	lun, err := d.GetLUN(ctx, LUNID)
+	if err != nil {
+		return false, fmt.Errorf("failed to get LUN (ID: %d): %w", LUNID, err)
+	}
+
+	if lun.HEALTHSTATUS == strconv.Itoa(StatusHealth) && lun.RUNNINGSTATUS == strconv.Itoa(StatusVolumeReady) {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 func (d *Device) DeleteLUN(ctx context.Context, lunID int) error {

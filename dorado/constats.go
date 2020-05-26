@@ -17,6 +17,8 @@ const (
 	TypeHostGroup      = 14
 	TypeLUN            = 11
 	TypeLUNGroup       = 256
+	TypeLUNCopy        = 219
+	TypeSnapshot       = 27
 	TypePortGroup      = 257
 	TypeInitiator      = 222
 	TypeMappingView    = 245
@@ -24,13 +26,27 @@ const (
 	TypeHyperMetroPair = 15361
 )
 
-const ( // For HyperMetroPair RUNNINGSTATUS
+// For HyperMetroPair RUNNINGSTATUS
+const (
 	StatusNormal           = 1
 	StatusSynchronizing    = 23
 	StatusInvalid          = 35
 	StatusPause            = 41
 	StatusForcedStart      = 93
 	StatusToBeSynchronized = 100
+)
+
+// For HEALTHSTATUS
+const (
+	StatusHealth = 1
+)
+
+// For a some RUNNNINGSTATUS
+const (
+	StatusVolumeReady      = 27
+	StatusLunCopyReady     = 40
+	StatusSnapshotActive   = 43
+	StatusSnapshotInactive = 45
 )
 
 type AssociateParam struct {
