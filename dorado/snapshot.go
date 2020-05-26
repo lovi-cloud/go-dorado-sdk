@@ -217,9 +217,9 @@ func (d *Device) DeleteSnapshot(ctx context.Context, snapshotID int) error {
 func (d *Device) ActivateSnapshot(ctx context.Context, snapshotID int) error {
 	spath := "/snapshot/acrivate"
 	param := struct {
-		SNAPSHOTLIST []int `json:"SNAPSHOTLIST"`
+		SNAPSHOTLIST []string `json:"SNAPSHOTLIST"`
 	}{
-		SNAPSHOTLIST: []int{snapshotID},
+		SNAPSHOTLIST: []string{strconv.Itoa(snapshotID)},
 	}
 	jb, err := json.Marshal(param)
 	if err != nil {
