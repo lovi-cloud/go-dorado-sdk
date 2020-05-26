@@ -65,6 +65,10 @@ func (d *Device) CreateLUNFromSource(ctx context.Context, sourceLUNID int, name 
 		d.StopSnapshot(ctx, snapshot.ID)
 		d.DeleteSnapshot(ctx, snapshot.ID)
 	}()
+	err = d.ActivateSnapshot(ctx, snapshot.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to activate snapshot: %w", err)
+	}
 
 	targetLUN, err := d.CreateLUNWithWait(ctx, name, capacityGB, storagePoolName)
 	if err != nil {
