@@ -215,7 +215,7 @@ func (d *Device) DeleteSnapshot(ctx context.Context, snapshotID int) error {
 }
 
 func (d *Device) ActivateSnapshot(ctx context.Context, snapshotID int) error {
-	spath := "/snapshot/acrivate"
+	spath := "/snapshot/activate"
 	param := struct {
 		SNAPSHOTLIST []string `json:"SNAPSHOTLIST"`
 	}{
