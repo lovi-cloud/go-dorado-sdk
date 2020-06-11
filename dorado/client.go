@@ -132,7 +132,7 @@ func newDevice(ipStr, username, password string, httpClient *http.Client) (*Devi
 		Jar:        jar,
 	}
 
-	err = d.setBaseURL(ipStr, DefaultDeviceId, "https")
+	err = d.setBaseURL("https://"+ipStr, DefaultDeviceId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to set BaseURL: %w", err)
 	}
@@ -140,8 +140,8 @@ func newDevice(ipStr, username, password string, httpClient *http.Client) (*Devi
 	return d, nil
 }
 
-func (d *Device) setBaseURL(ipStr, token, schema string) error {
-	urlStr := fmt.Sprintf("%s://%s/deviceManager/rest/%s", schema, ipStr, token)
+func (d *Device) setBaseURL(baseHost, token string) error {
+	urlStr := fmt.Sprintf("%s/deviceManager/rest/%s", baseHost, token)
 	parsedURL, err := url.ParseRequestURI(urlStr)
 	if err != nil {
 		return fmt.Errorf("failed to parse url: %w", err)
@@ -174,7 +174,7 @@ func (d *Device) setToken() error {
 	d.DeviceId = deviceId
 	d.Token = token
 
-	err = d.setBaseURL(d.IPAddress.String(), deviceId, "https")
+	err = d.setBaseURL("https://"+d.IPAddress.String(), deviceId)
 	if err != nil {
 		return fmt.Errorf("failed to set BaseURL: %w", err)
 	}
@@ -233,10 +233,6 @@ func (d *Device) getToken() (string, string, error) {
 	err = decodeBody(resp, body)
 	if err != nil {
 		return "", "", fmt.Errorf(ErrDecodeBody+": %w", err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return "", "", fmt.Errorf("failed to get token: %w", body)
 	}
 
 	return body.IBaseToken, body.DeviceId, nil
