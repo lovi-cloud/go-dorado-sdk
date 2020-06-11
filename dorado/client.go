@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -27,6 +28,7 @@ type Client struct {
 }
 
 type Device struct {
+	IPAddress  *net.TCPAddr // TODO: implement for dual controller
 	URL        *url.URL
 	HTTPClient *http.Client
 	DeviceId   string
@@ -57,6 +59,20 @@ const (
 )
 
 func NewClient(localIp, remoteIp, username, password, portgroupName string, logger *log.Logger) (*Client, error) {
+	client, err := NewClientDefaultToken(localIp, remoteIp, username, password, portgroupName, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	err = client.SetToken()
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
+
+func NewClientDefaultToken(localIp, remoteIp, username, password, portgroupName string, logger *log.Logger) (*Client, error) {
 	// validate input value
 	if len(username) == 0 {
 		return nil, errors.New("username is required")
@@ -65,8 +81,8 @@ func NewClient(localIp, remoteIp, username, password, portgroupName string, logg
 		return nil, errors.New("password is required")
 	}
 
-	l := log.New(ioutil.Discard, "", log.LstdFlags)
 	if logger == nil {
+		l := log.New(ioutil.Discard, "", log.LstdFlags)
 		logger = l
 	}
 
@@ -98,10 +114,9 @@ func NewClient(localIp, remoteIp, username, password, portgroupName string, logg
 }
 
 func newDevice(ipStr, username, password string, httpClient *http.Client) (*Device, error) {
-	urlStr := fmt.Sprintf("https://%s/deviceManager/rest/%s", ipStr, DefaultDeviceId)
-	parsedURL, err := url.ParseRequestURI(urlStr)
+	parsed, err := net.ResolveTCPAddr("tcp", ipStr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse url: %w", err)
+		return nil, fmt.Errorf("failed to parse input ipstr: %w", err)
 	}
 
 	jar, err := cookiejar.New(nil)
@@ -110,27 +125,61 @@ func newDevice(ipStr, username, password string, httpClient *http.Client) (*Devi
 	}
 
 	d := &Device{
-		URL:        parsedURL,
+		IPAddress:  parsed,
 		HTTPClient: httpClient,
 		Username:   username,
 		Password:   password,
 		Jar:        jar,
 	}
 
+	err = d.setBaseURL(ipStr, DefaultDeviceId, "https")
+	if err != nil {
+		return nil, fmt.Errorf("failed to set BaseURL: %w", err)
+	}
+
+	return d, nil
+}
+
+func (d *Device) setBaseURL(ipStr, token, schema string) error {
+	urlStr := fmt.Sprintf("%s://%s/deviceManager/rest/%s", schema, ipStr, token)
+	parsedURL, err := url.ParseRequestURI(urlStr)
+	if err != nil {
+		return fmt.Errorf("failed to parse url: %w", err)
+	}
+
+	d.URL = parsedURL
+	return nil
+}
+
+func (c *Client) SetToken() error {
+	var err error
+
+	err = c.LocalDevice.setToken()
+	if err != nil {
+		return fmt.Errorf("failed to set token in local device: %w", err)
+	}
+	err = c.RemoteDevice.setToken()
+	if err != nil {
+		return fmt.Errorf("failed to set token in remote device: %w", err)
+	}
+
+	return nil
+}
+
+func (d *Device) setToken() error {
 	token, deviceId, err := d.getToken()
 	if err != nil {
-		return nil, fmt.Errorf("failed to getToken: %w", err)
+		return fmt.Errorf("failed to getToken: %w", err)
 	}
 	d.DeviceId = deviceId
 	d.Token = token
-	deviceURL := fmt.Sprintf("https://%s/deviceManager/rest/%s", ipStr, deviceId)
-	parsedDeviceURL, err := url.ParseRequestURI(deviceURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse url: %w", err)
-	}
-	d.URL = parsedDeviceURL
 
-	return d, nil
+	err = d.setBaseURL(d.IPAddress.String(), deviceId, "https")
+	if err != nil {
+		return fmt.Errorf("failed to set BaseURL: %w", err)
+	}
+
+	return nil
 }
 
 func (d *Device) newRequest(ctx context.Context, method, spath string, body io.Reader) (*http.Request, error) {
