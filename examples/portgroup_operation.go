@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/whywaita/go-dorado-sdk/example/lib"
+	"github.com/whywaita/go-dorado-sdk/examples/lib"
 )
 
 func main() {
