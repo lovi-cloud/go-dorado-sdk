@@ -6,24 +6,25 @@ import (
 )
 
 // this const value drip by https://github.com/Huawei/OpenStack_Driver/blob/master/Cinder/Queens/constants.py
-
 const (
 	CapacityUnit  = 1024 * 1024 * 2 // 2 is hypermetro capacity NOTE(whywaita): honnmani?
 	MaxNameLength = 31
 )
 
+// Type definition
 const (
-	TypeHost           = 21
-	TypeHostGroup      = 14
-	TypeLUN            = 11
-	TypeLUNGroup       = 256
-	TypeLUNCopy        = 219
-	TypeSnapshot       = 27
-	TypePortGroup      = 257
-	TypeInitiator      = 222
-	TypeMappingView    = 245
-	TypeEthernetPort   = 213
-	TypeHyperMetroPair = 15361
+	TypeHost             = 21
+	TypeHostGroup        = 14
+	TypeLUN              = 11
+	TypeLUNGroup         = 256
+	TypeLUNCopy          = 219
+	TypeSnapshot         = 27
+	TypePortGroup        = 257
+	TypeInitiator        = 222
+	TypeMappingView      = 245
+	TypeEthernetPort     = 213
+	TypeHyperMetroPair   = 15361
+	TypeHyperMetroDomain = 15362
 )
 
 // For HyperMetroPair RUNNINGSTATUS
@@ -49,6 +50,7 @@ const (
 	StatusSnapshotInactive = 45
 )
 
+// AssociateParam is parameter of associate functions
 type AssociateParam struct {
 	ID               string `json:"ID,omitempty"`
 	TYPE             string `json:"TYPE,omitempty"`
@@ -56,6 +58,7 @@ type AssociateParam struct {
 	ASSOCIATEOBJTYPE int    `json:"ASSOCIATEOBJTYPE,omitempty"`
 }
 
+// AddAssociateParam add AssociateParam to http.Request
 func AddAssociateParam(req *http.Request, param *AssociateParam) *http.Request {
 	if param == nil {
 		return req

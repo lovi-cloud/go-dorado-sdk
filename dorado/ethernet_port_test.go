@@ -110,7 +110,7 @@ func TestDevice_GetAssociatedEthernetPort(t *testing.T) {
 			RUNNINGSTATUS:     "11",
 			SPEED:             "-1",
 			STARTTIME:         "1474289326",
-			TYPE:              213,
+			TYPE:              TypeEthernetPort,
 			CrcErrors:         "0",
 			DswID:             "4294967295",
 			DswLinkRight:      "4294967295",

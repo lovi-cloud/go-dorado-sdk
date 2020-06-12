@@ -51,14 +51,14 @@ func TestDevice_GetHostGroups(t *testing.T) {
 			ID:                0,
 			ISADD2MAPPINGVIEW: false,
 			NAME:              "hostgroup1",
-			TYPE:              14,
+			TYPE:              TypeHostGroup,
 		},
 		{
 			DESCRIPTION:       "",
 			ID:                1,
 			ISADD2MAPPINGVIEW: false,
 			NAME:              "HostGroup002",
-			TYPE:              14,
+			TYPE:              TypeHostGroup,
 		},
 	}
 

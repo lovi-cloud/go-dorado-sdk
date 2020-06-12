@@ -79,9 +79,9 @@ func TestDevice_GetHosts(t *testing.T) {
 			OPERATIONSYSTEM: "0",
 			PARENTID:        "1",
 			PARENTNAME:      "hostgroup1",
-			PARENTTYPE:      14,
+			PARENTTYPE:      TypeHostGroup,
 			RUNNINGSTATUS:   "1",
-			TYPE:            21,
+			TYPE:            TypeHost,
 		},
 		{
 			DESCRIPTION:     "",
@@ -99,7 +99,7 @@ func TestDevice_GetHosts(t *testing.T) {
 			PARENTNAME:      "",
 			PARENTTYPE:      0,
 			RUNNINGSTATUS:   "1",
-			TYPE:            21,
+			TYPE:            TypeHost,
 		},
 	}
 
