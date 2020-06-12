@@ -7,6 +7,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+// NOTE(whywaita): implement only GET.
+// HyperMetroDomain is a few under our usage.
+
+// HyperMetroDomain is domain of HyperMetro
 type HyperMetroDomain struct {
 	CPSID          string `json:"CPSID"`
 	CPSNAME        string `json:"CPSNAME"`
@@ -22,19 +26,19 @@ type HyperMetroDomain struct {
 	TYPE           int    `json:"TYPE"`
 }
 
+// Error const
 const (
 	ErrHyperMetroDomainNotFound = "HyperMetroDomain ID is not found"
 )
 
+// GetHyperMetroDomains get HyperMetroDomain objects.
 func (c *Client) GetHyperMetroDomains(ctx context.Context, query *SearchQuery) ([]HyperMetroDomain, error) {
 	// HyperMetroDomain is a same value between a local device and a remote device.
 	return c.LocalDevice.GetHyperMetroDomains(ctx, query)
 }
 
+// GetHyperMetroDomains get HyperMetroDomain objects in device.
 func (d *Device) GetHyperMetroDomains(ctx context.Context, query *SearchQuery) ([]HyperMetroDomain, error) {
-	// NOTE(whywaita): implement only GET.
-	// HyperMetroDomain is a few under our usage.
-
 	spath := "/HyperMetroDomain"
 
 	req, err := d.newRequest(ctx, "GET", spath, nil)
