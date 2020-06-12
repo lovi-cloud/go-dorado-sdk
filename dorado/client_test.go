@@ -24,11 +24,11 @@ func setup() (client *Client, mux *http.ServeMux, serverURL string, teardown fun
 		log.Fatalf("failed to create dorado.Client: %s", err)
 	}
 
-	err = client.LocalDevice.setBaseURL(server.URL, DefaultDeviceId)
+	err = client.LocalDevice.setBaseURL(server.URL, DefaultDeviceID)
 	if err != nil {
 		log.Fatalf("failed to set baseURL in local devive: %s", err)
 	}
-	err = client.RemoteDevice.setBaseURL(server.URL, DefaultDeviceId)
+	err = client.RemoteDevice.setBaseURL(server.URL, DefaultDeviceID)
 	if err != nil {
 		log.Fatalf("failed to set baseURL in remote devive: %s", err)
 	}

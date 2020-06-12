@@ -18,6 +18,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Client is client for go-dorado-sdk
 type Client struct {
 	LocalDevice  *Device
 	RemoteDevice *Device
@@ -27,11 +28,12 @@ type Client struct {
 	Logger *log.Logger
 }
 
+// Device is device of dorado
 type Device struct {
 	IPAddress  *net.TCPAddr // TODO: implement for dual controller
 	URL        *url.URL
 	HTTPClient *http.Client
-	DeviceId   string
+	DeviceID   string
 	Token      string
 	Jar        *cookiejar.Jar
 
@@ -39,11 +41,13 @@ type Device struct {
 	Password string
 }
 
+// Result is response of REST API
 type Result struct {
 	Data  interface{} `json:"data"`
 	Error ErrorResp   `json:"error"`
 }
 
+// ErrorResp is error response of REST API
 type ErrorResp struct {
 	Code        int    `json:"code"`
 	Description string `json:"description"`
@@ -54,12 +58,14 @@ var (
 	userAgent = fmt.Sprintf("DoradoGoClient")
 )
 
+// default values
 const (
-	DefaultDeviceId = "xx"
+	DefaultDeviceID = "xx"
 )
 
-func NewClient(localIp, remoteIp, username, password, portgroupName string, logger *log.Logger) (*Client, error) {
-	client, err := NewClientDefaultToken(localIp, remoteIp, username, password, portgroupName, logger)
+// NewClient create go-dorado-sdk client and set iBaseToken create by REST API.
+func NewClient(localIP, remoteIP, username, password, portgroupName string, logger *log.Logger) (*Client, error) {
+	client, err := NewClientDefaultToken(localIP, remoteIP, username, password, portgroupName, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +78,9 @@ func NewClient(localIp, remoteIp, username, password, portgroupName string, logg
 	return client, nil
 }
 
-func NewClientDefaultToken(localIp, remoteIp, username, password, portgroupName string, logger *log.Logger) (*Client, error) {
+// NewClientDefaultToken create go-dorado-sdk client.
+// this function not call REST API.
+func NewClientDefaultToken(localIP, remoteIP, username, password, portgroupName string, logger *log.Logger) (*Client, error) {
 	// validate input value
 	if len(username) == 0 {
 		return nil, errors.New("username is required")
@@ -93,12 +101,12 @@ func NewClientDefaultToken(localIp, remoteIp, username, password, portgroupName 
 	transport.TLSClientConfig = &tlsConfig
 	httpClient := &http.Client{Transport: &transport}
 
-	localDevice, err := newDevice(localIp, username, password, httpClient)
+	localDevice, err := newDevice(localIP, username, password, httpClient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Local Device: %w", err)
 	}
 
-	remoteDevice, err := newDevice(remoteIp, username, password, httpClient)
+	remoteDevice, err := newDevice(remoteIP, username, password, httpClient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Remote Device: %w", err)
 	}
@@ -132,7 +140,7 @@ func newDevice(ipStr, username, password string, httpClient *http.Client) (*Devi
 		Jar:        jar,
 	}
 
-	err = d.setBaseURL("https://"+ipStr, DefaultDeviceId)
+	err = d.setBaseURL("https://"+ipStr, DefaultDeviceID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to set BaseURL: %w", err)
 	}
@@ -151,6 +159,7 @@ func (d *Device) setBaseURL(baseHost, token string) error {
 	return nil
 }
 
+// SetToken set iBaseToken from REST API.
 func (c *Client) SetToken() error {
 	var err error
 
@@ -167,14 +176,14 @@ func (c *Client) SetToken() error {
 }
 
 func (d *Device) setToken() error {
-	token, deviceId, err := d.getToken()
+	token, deviceID, err := d.getToken()
 	if err != nil {
 		return fmt.Errorf("failed to getToken: %w", err)
 	}
-	d.DeviceId = deviceId
+	d.DeviceID = deviceID
 	d.Token = token
 
-	err = d.setBaseURL("https://"+d.IPAddress.String(), deviceId)
+	err = d.setBaseURL("https://"+d.IPAddress.String(), deviceID)
 	if err != nil {
 		return fmt.Errorf("failed to set BaseURL: %w", err)
 	}
@@ -200,9 +209,10 @@ func (d *Device) newRequest(ctx context.Context, method, spath string, body io.R
 	return req, nil
 }
 
+// Session is response of /sessions
 type Session struct {
 	IBaseToken string `json:"iBaseToken"`
-	DeviceId   string `json:"deviceid"`
+	DeviceID   string `json:"deviceid"`
 }
 
 func (d *Device) getToken() (string, string, error) {
@@ -235,5 +245,5 @@ func (d *Device) getToken() (string, string, error) {
 		return "", "", fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
-	return body.IBaseToken, body.DeviceId, nil
+	return body.IBaseToken, body.DeviceID, nil
 }
