@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// EthernetPort is type definition
 type EthernetPort struct {
 	BONDID             string `json:"BONDID"`
 	BONDNAME           string `json:"BONDNAME"`

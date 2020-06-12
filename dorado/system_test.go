@@ -15,7 +15,8 @@ func TestDevice_GetSystem(t *testing.T) {
 	mux.HandleFunc("/system/", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
 		fmt.Fprintf(w,
-			`{ 
+			`
+{ 
  "data": { 
         "CACHEWRITEQUOTA": "333", 
         "CONFIGMODEL": "1", 
