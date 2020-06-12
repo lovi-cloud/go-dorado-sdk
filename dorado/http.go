@@ -6,6 +6,7 @@ import (
 	"net/http"
 )
 
+// Error const
 const (
 	ErrCreateRequest   = "failed to create request"
 	ErrHTTPRequestDo   = "failed to HTTP request"
