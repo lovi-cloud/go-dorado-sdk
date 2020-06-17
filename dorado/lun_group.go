@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// LunGroup is group of LUN
 type LunGroup struct {
 	CAPCITY            string `json:"CAPCITY"`
 	DESCRIPTION        string `json:"DESCRIPTION"`
@@ -21,10 +22,12 @@ type LunGroup struct {
 	ASSOCIATELUNIDLIST string `json:"ASSOCIATELUNIDLIST"`
 }
 
+// Error const
 const (
 	ErrLunGroupNotFound = "LUN Group is not found"
 )
 
+// GetLunGroups get lun groups by query
 func (d *Device) GetLunGroups(ctx context.Context, query *SearchQuery) ([]LunGroup, error) {
 	spath := "/lungroup"
 
@@ -50,6 +53,7 @@ func (d *Device) GetLunGroups(ctx context.Context, query *SearchQuery) ([]LunGro
 	return lunGroups, nil
 }
 
+// GetLunGroup get lun group by id
 func (d *Device) GetLunGroup(ctx context.Context, lungroupID int) (*LunGroup, error) {
 	spath := fmt.Sprintf("/lungroup/%d", lungroupID)
 
@@ -70,9 +74,10 @@ func (d *Device) GetLunGroup(ctx context.Context, lungroupID int) (*LunGroup, er
 	return lunGroup, nil
 }
 
+// CreateLunGroup create lun group
+// Host : HostGroup : LunGroup is 1:1:1.
+// lun group will create the same name as a host.
 func (d *Device) CreateLunGroup(ctx context.Context, hostname string) (*LunGroup, error) {
-	// Host : HostGroup : LunGroup is 1:1:1.
-	// lungroup will create the same name as a host.
 	spath := "/lungroup"
 	param := struct {
 		NAME        string `json:"NAME"`
@@ -103,6 +108,7 @@ func (d *Device) CreateLunGroup(ctx context.Context, hostname string) (*LunGroup
 	return lunGroup, nil
 }
 
+// DeleteLunGroup delete lun group
 func (d *Device) DeleteLunGroup(ctx context.Context, lungroupID int) error {
 	spath := fmt.Sprintf("/lungroup/%d", lungroupID)
 
@@ -123,6 +129,7 @@ func (d *Device) DeleteLunGroup(ctx context.Context, lungroupID int) error {
 	return nil
 }
 
+// AssociateLun associate lun to lun group
 func (d *Device) AssociateLun(ctx context.Context, lungroupID, lunID int) error {
 	spath := "/lungroup/associate"
 	param := AssociateParam{
@@ -152,6 +159,7 @@ func (d *Device) AssociateLun(ctx context.Context, lungroupID, lunID int) error 
 	return nil
 }
 
+// DisAssociateLun dis associate lun from lun group
 func (d *Device) DisAssociateLun(ctx context.Context, lungroupID, lunID int) error {
 	spath := "/lungroup/associate"
 	param := &AssociateParam{
@@ -178,6 +186,7 @@ func (d *Device) DisAssociateLun(ctx context.Context, lungroupID, lunID int) err
 	return nil
 }
 
+// GetAssociateLunGroups get associated lun group by query
 func (d *Device) GetAssociateLunGroups(ctx context.Context, query *SearchQuery) ([]LunGroup, error) {
 	spath := "/lungroup/associate"
 
@@ -199,7 +208,8 @@ func (d *Device) GetAssociateLunGroups(ctx context.Context, query *SearchQuery) 
 	return lungroups, nil
 }
 
-func (d *Device) GetLunGroupByLunId(ctx context.Context, lunID int) (*LunGroup, error) {
+// GetLunGroupByLunID get associated lun group by lun id.
+func (d *Device) GetLunGroupByLunID(ctx context.Context, lunID int) (*LunGroup, error) {
 	query := &SearchQuery{
 		AssociateObjType: strconv.Itoa(TypeLUN),
 		AssociateObjID:   strconv.Itoa(lunID),
@@ -217,6 +227,7 @@ func (d *Device) GetLunGroupByLunId(ctx context.Context, lunID int) (*LunGroup, 
 	return &lungroups[0], nil
 }
 
+// IsAssociated return boolean
 func (lg *LunGroup) IsAssociated() bool {
 	list := lg.ASSOCIATELUNIDLIST
 
@@ -227,6 +238,7 @@ func (lg *LunGroup) IsAssociated() bool {
 	return false
 }
 
+// GetLunGroupForce get lun group, and create lun group if not exist.
 func (d *Device) GetLunGroupForce(ctx context.Context, hostname string) (*LunGroup, error) {
 	lungroups, err := d.GetLunGroups(ctx, NewSearchQueryHostname(hostname))
 	if err != nil {

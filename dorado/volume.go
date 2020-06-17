@@ -106,7 +106,7 @@ func (c *Client) DeleteVolume(ctx context.Context, hyperMetroPairID string) erro
 		return fmt.Errorf("failed to get lun information: %w", err)
 	}
 	if llun.ISADD2LUNGROUP == true {
-		lLungroup, err := c.LocalDevice.GetLunGroupByLunId(ctx, hmp.LOCALOBJID)
+		lLungroup, err := c.LocalDevice.GetLunGroupByLunID(ctx, hmp.LOCALOBJID)
 		if err != nil {
 			return fmt.Errorf("failed to get lungroup by associated lun: %w", err)
 		}
@@ -121,7 +121,7 @@ func (c *Client) DeleteVolume(ctx context.Context, hyperMetroPairID string) erro
 		return fmt.Errorf("failed to get lun information: %w", err)
 	}
 	if rlun.ISADD2LUNGROUP == true {
-		rLungroup, err := c.RemoteDevice.GetLunGroupByLunId(ctx, hmp.REMOTEOBJID)
+		rLungroup, err := c.RemoteDevice.GetLunGroupByLunID(ctx, hmp.REMOTEOBJID)
 		if err != nil {
 			return fmt.Errorf("failed to get lungroup by associated lun: %w", err)
 		}
@@ -287,7 +287,7 @@ func (d *Device) DetachVolume(ctx context.Context, lunID int) error {
 		return fmt.Errorf("failed to get LUN: %w", err)
 	}
 
-	lungroup, err := d.GetLunGroupByLunId(ctx, lun.ID)
+	lungroup, err := d.GetLunGroupByLunID(ctx, lun.ID)
 	if err != nil {
 		return fmt.Errorf("failed to get lungroup: %w", err)
 	}
