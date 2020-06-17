@@ -10,6 +10,7 @@ import (
 // NOTE(whywaita): implement only GET.
 // storagePool is a few under our usage.
 
+// StoragePool is top level mapping pool of storage (mainly lun)
 type StoragePool struct {
 	ASSOCIATEOBJID         string `json:"ASSOCIATEOBJID"`
 	DESCRIPTION            string `json:"DESCRIPTION"`
@@ -43,6 +44,7 @@ type StoragePool struct {
 	UnbalanceDiskIDList    string `json:"unbalanceDiskIdList"`
 }
 
+// StoragePools is multimapping of storagepool
 type StoragePools struct {
 	COMPRESSEDCAPACITY              string `json:"COMPRESSEDCAPACITY"`
 	COMPRESSINVOLVEDCAPACITY        string `json:"COMPRESSINVOLVEDCAPACITY"`
@@ -88,10 +90,12 @@ type StoragePools struct {
 	TotalSizeWithoutSnap            string `json:"totalSizeWithoutSnap"`
 }
 
+// Error const
 const (
 	ErrStoragePoolNotFound = "StoragePool is not found"
 )
 
+// GetStoragePools get storage pools by query
 func (d *Device) GetStoragePools(ctx context.Context, query *SearchQuery) ([]StoragePools, error) {
 	spath := "/storagepool"
 	req, err := d.newRequest(ctx, "GET", spath, nil)
@@ -117,6 +121,7 @@ func (d *Device) GetStoragePools(ctx context.Context, query *SearchQuery) ([]Sto
 	return storagePools, nil
 }
 
+// GetStoragePool get storage pool by id
 func (d *Device) GetStoragePool(ctx context.Context, storagePoolID int) (*StoragePool, error) {
 	var storagePool *StoragePool
 
