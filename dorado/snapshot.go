@@ -13,6 +13,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Snapshot is object of lun snapshot
 type Snapshot struct {
 	CASCADEDLEVEL         string `json:"CASCADEDLEVEL"`
 	CASCADEDNUM           string `json:"CASCADEDNUM"`
@@ -51,14 +52,17 @@ type Snapshot struct {
 	SnapCgID              string `json:"snapCgId"`
 }
 
+// Error const
 const (
 	ErrSnapshotNotFound = "snapshot is not found"
 )
 
+// EncodeSnapshotName encode compatible name
 func EncodeSnapshotName(u uuid.UUID) string {
 	return EncodeLunName(u)
 }
 
+// GetSnapshots get snapshots by query
 func (d *Device) GetSnapshots(ctx context.Context, query *SearchQuery) ([]Snapshot, error) {
 	spath := "/snapshot"
 
@@ -84,6 +88,7 @@ func (d *Device) GetSnapshots(ctx context.Context, query *SearchQuery) ([]Snapsh
 	return snapshots, nil
 }
 
+// GetSnapshot get snapshot by id
 func (d *Device) GetSnapshot(ctx context.Context, snapshotID int) (*Snapshot, error) {
 	spath := fmt.Sprintf("/snapshot/%d", snapshotID)
 
@@ -104,6 +109,7 @@ func (d *Device) GetSnapshot(ctx context.Context, snapshotID int) (*Snapshot, er
 	return snapshots, nil
 }
 
+// CreateSnapshot create object of snapshot
 func (d *Device) CreateSnapshot(ctx context.Context, lunID int, name uuid.UUID, description string) (*Snapshot, error) {
 	spath := "/snapshot"
 	param := struct {
@@ -183,6 +189,7 @@ func (d *Device) snapshotIsReady(ctx context.Context, snapshotID int) (bool, err
 	return false, nil
 }
 
+// DeleteSnapshot delete snapshot
 func (d *Device) DeleteSnapshot(ctx context.Context, snapshotID int) error {
 	spath := fmt.Sprintf("/snapshot/%d", snapshotID)
 	param := struct {
@@ -214,6 +221,7 @@ func (d *Device) DeleteSnapshot(ctx context.Context, snapshotID int) error {
 	return nil
 }
 
+// ActivateSnapshot activate snapshot
 func (d *Device) ActivateSnapshot(ctx context.Context, snapshotID int) error {
 	spath := "/snapshot/activate"
 	param := struct {
@@ -243,6 +251,7 @@ func (d *Device) ActivateSnapshot(ctx context.Context, snapshotID int) error {
 	return nil
 }
 
+// StopSnapshot stop snapshot
 func (d *Device) StopSnapshot(ctx context.Context, snapshotID int) error {
 	spath := "/snapshot/stop"
 	param := struct {
