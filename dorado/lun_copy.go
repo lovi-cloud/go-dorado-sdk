@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// LunCopy is copy object for lun
 type LunCopy struct {
 	BASELUN               string `json:"BASELUN"`
 	COPYPROGRESS          string `json:"COPYPROGRESS"`
@@ -33,10 +34,12 @@ type LunCopy struct {
 	TYPE                  int    `json:"TYPE"`
 }
 
+// Default const
 const (
 	DefaultLUNCopyTimeoutSecond = 60
 )
 
+// GetLUNCopys get lun copy objects by query
 func (d *Device) GetLUNCopys(ctx context.Context, query *SearchQuery) ([]LunCopy, error) {
 	spath := "/luncopy"
 
@@ -64,6 +67,7 @@ func (d *Device) GetLUNCopys(ctx context.Context, query *SearchQuery) ([]LunCopy
 	return lunCopys, nil
 }
 
+// GetLUNCopy get lun copy by id
 func (d *Device) GetLUNCopy(ctx context.Context, lunCopyID int) (*LunCopy, error) {
 	spath := fmt.Sprintf("/luncopy/%d", lunCopyID)
 
@@ -84,6 +88,7 @@ func (d *Device) GetLUNCopy(ctx context.Context, lunCopyID int) (*LunCopy, error
 	return lunCopys, nil
 }
 
+// CreateLUNCopy create lun copy definition of source to target lun
 func (d *Device) CreateLUNCopy(ctx context.Context, sourceLUNID, targetLUNID int) (*LunCopy, error) {
 	spath := "/luncopy"
 	param := struct {
@@ -119,6 +124,7 @@ func (d *Device) CreateLUNCopy(ctx context.Context, sourceLUNID, targetLUNID int
 	return luncopy, nil
 }
 
+// DeleteLUNCopy delete lun copy object
 func (d *Device) DeleteLUNCopy(ctx context.Context, luncopyID int) error {
 	spath := fmt.Sprintf("/luncopy/%d", luncopyID)
 
@@ -139,6 +145,7 @@ func (d *Device) DeleteLUNCopy(ctx context.Context, luncopyID int) error {
 	return nil
 }
 
+// StartLUNCopy start to copy lun
 func (d *Device) StartLUNCopy(ctx context.Context, luncopyID int) error {
 	spath := "/luncopy/start"
 	param := struct {
@@ -170,7 +177,7 @@ func (d *Device) StartLUNCopy(ctx context.Context, luncopyID int) error {
 	return nil
 }
 
-// CreateLUNCopyWithWait start luncopy and wait to copy
+// StartLUNCopyWithWait start luncopy and wait to copy
 func (d *Device) StartLUNCopyWithWait(ctx context.Context, luncopyID int, timeoutCount int) error {
 	if timeoutCount == 0 {
 		timeoutCount = DefaultLUNCopyTimeoutSecond

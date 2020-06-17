@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Initiator is iSCSI initiator
 type Initiator struct {
 	FAILOVERMODE    string `json:"FAILOVERMODE"`
 	HEALTHSTATUS    string `json:"HEALTHSTATUS"`
@@ -28,6 +29,7 @@ type Initiator struct {
 	PARENTTYPE      int    `json:"PARENTTYPE,omitempty"`
 }
 
+// Error const
 const (
 	ErrInitiatorNotFound = "Initiator is not found"
 )
@@ -65,6 +67,7 @@ func (d *Device) GetInitiators(ctx context.Context, query *SearchQuery) ([]Initi
 	return initiators, nil
 }
 
+// GetInitiator get initiator by id.
 func (d *Device) GetInitiator(ctx context.Context, iqn string) (*Initiator, error) {
 	spath := fmt.Sprintf("/iscsi_initiator/%s", iqn)
 
@@ -85,6 +88,7 @@ func (d *Device) GetInitiator(ctx context.Context, iqn string) (*Initiator, erro
 	return initiators, nil
 }
 
+// CreateInitiator create initiator.
 func (d *Device) CreateInitiator(ctx context.Context, iqn string) (*Initiator, error) {
 	spath := "/iscsi_initiator"
 	param := struct {
@@ -118,6 +122,7 @@ func (d *Device) CreateInitiator(ctx context.Context, iqn string) (*Initiator, e
 	return initiator, nil
 }
 
+// DeleteInitiator delete initiator.
 func (d *Device) DeleteInitiator(ctx context.Context, iqn string) error {
 	spath := fmt.Sprintf("/iscsi_initiator/%s", iqn)
 
@@ -138,6 +143,7 @@ func (d *Device) DeleteInitiator(ctx context.Context, iqn string) error {
 	return nil
 }
 
+// UpdateInitiatorParam is parameter for UpdateInitiator
 type UpdateInitiatorParam struct {
 	USECHAP    string `json:"USECHAP"`
 	PARENTTYPE string `json:"PARENTTYPE"`
@@ -146,6 +152,7 @@ type UpdateInitiatorParam struct {
 	PARENTID   string `json:"PARENTID"`
 }
 
+// UpdateInitiator update initiator information.
 func (d *Device) UpdateInitiator(ctx context.Context, iqn string, initiatorParam UpdateInitiatorParam) (*Initiator, error) {
 	spath := fmt.Sprintf("/iscsi_initiator/%s", iqn)
 
@@ -171,8 +178,9 @@ func (d *Device) UpdateInitiator(ctx context.Context, iqn string, initiatorParam
 	return i, nil
 }
 
+// GetInitiatorForce get initiator and create initiator if not exists.
 func (d *Device) GetInitiatorForce(ctx context.Context, iqn string) (*Initiator, error) {
-	initiators, err := d.GetInitiators(ctx, NewSearchQueryId(encodeIqn(iqn)))
+	initiators, err := d.GetInitiators(ctx, NewSearchQueryID(encodeIqn(iqn)))
 	if err != nil {
 		if err.Error() == ErrInitiatorNotFound {
 			return d.CreateInitiator(ctx, iqn)

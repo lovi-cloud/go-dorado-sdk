@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/whywaita/go-dorado-sdk/example/lib"
+	"github.com/whywaita/go-dorado-sdk/examples/lib"
 )
 
 func main() {
@@ -18,11 +18,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	portalIPs, err := client.LocalDevice.GetPortalIPAddresses(ctx, 0)
+	snapshots, err := client.LocalDevice.GetSnapshots(ctx, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("%+v\n", portalIPs)
+
+	for _, s := range snapshots {
+		fmt.Printf("%+v\n", s)
+	}
 
 	fmt.Println("operation is done!")
 }

@@ -4,6 +4,7 @@ import (
 	"net/http"
 )
 
+// SearchQuery is query struct for search function
 type SearchQuery struct {
 	Filter         string
 	Range          string
@@ -14,13 +15,16 @@ type SearchQuery struct {
 	Type             string
 }
 
+// TimeConversion is type of time
 type TimeConversion int
 
+// TimeConversion const
 const (
 	UTC TimeConversion = iota
 	LocalTime
 )
 
+// String is function compatible for fmt.Stringer
 func (tc TimeConversion) String() string {
 	switch tc {
 	case UTC:
@@ -32,28 +36,33 @@ func (tc TimeConversion) String() string {
 	}
 }
 
+// ToFilter convert to REST API's filter
 func ToFilter(param, value string) string {
 	return param + "::" + value
 }
 
+// NewSearchQueryHostname create hostname filter SearchQuery
 func NewSearchQueryHostname(hostname string) *SearchQuery {
 	return &SearchQuery{
 		Filter: ToFilter("NAME", encodeHostName(hostname)),
 	}
 }
 
+// NewSearchQueryName create name filter SearchQuery
 func NewSearchQueryName(name string) *SearchQuery {
 	return &SearchQuery{
 		Filter: ToFilter("NAME", name),
 	}
 }
 
-func NewSearchQueryId(id string) *SearchQuery {
+// NewSearchQueryID create ID filter SearchQuery
+func NewSearchQueryID(id string) *SearchQuery {
 	return &SearchQuery{
 		Filter: ToFilter("ID", id),
 	}
 }
 
+// AddSearchQuery add url parameter by SearchQuery
 func AddSearchQuery(req *http.Request, query *SearchQuery) *http.Request {
 	if query == nil {
 		return req

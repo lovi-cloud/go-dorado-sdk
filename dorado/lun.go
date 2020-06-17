@@ -16,6 +16,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+// LUN is raw block storage object.
 type LUN struct {
 	ALLOCCAPACITY               string `json:"ALLOCCAPACITY"`
 	ALLOCTYPE                   string `json:"ALLOCTYPE"`
@@ -80,10 +81,12 @@ type LUN struct {
 	TakeOverLunWwn              string `json:"takeOverLunWwn"`
 }
 
+// ASSOCIATEMETADATA is one of LUN parameter
 type ASSOCIATEMETADATA struct {
 	HostLUNID int `json:"HostLUNID"`
 }
 
+// ParamCreateLUN is parameter of CreateLUN
 type ParamCreateLUN struct {
 	WRITEPOLICY        string `json:"WRITEPOLICY"`
 	PREFETCHVALUE      string `json:"PREFETCHVALUE"`
@@ -98,10 +101,15 @@ type ParamCreateLUN struct {
 	PREFETCHPOLICY     string `json:"PREFETCHPOLICY"`
 }
 
+// Error const
 const (
 	ErrLunNotFound = "LUN is not found"
 )
 
+// PrefixVolumeDescription is prefix of volume Description
+var PrefixVolumeDescription = "volume-"
+
+// EncodeLunName encode name for LUN Name
 func EncodeLunName(u uuid.UUID) string {
 	// MAX LUN name length is 31, but uuid
 	// this function binding by huawei_utils.encode_name(id) in OpenStack cinder-driver.
@@ -113,6 +121,7 @@ func EncodeLunName(u uuid.UUID) string {
 	return name
 }
 
+// GetLUNs get lun objects by query
 func (d *Device) GetLUNs(ctx context.Context, query *SearchQuery) ([]LUN, error) {
 	spath := "/lun"
 
@@ -140,6 +149,7 @@ func (d *Device) GetLUNs(ctx context.Context, query *SearchQuery) ([]LUN, error)
 	return luns, nil
 }
 
+// GetLUN get lun object by id
 func (d *Device) GetLUN(ctx context.Context, lunID int) (*LUN, error) {
 	spath := fmt.Sprintf("/lun/%d", lunID)
 
@@ -160,6 +170,7 @@ func (d *Device) GetLUN(ctx context.Context, lunID int) (*LUN, error) {
 	return lun, nil
 }
 
+// CreateLUN create lun object
 func (d *Device) CreateLUN(ctx context.Context, u uuid.UUID, capacityGB int, storagePoolName string) (*LUN, error) {
 	// low level API
 	storagePools, err := d.GetStoragePools(ctx, NewSearchQueryName(storagePoolName))
@@ -177,7 +188,7 @@ func (d *Device) CreateLUN(ctx context.Context, u uuid.UUID, capacityGB int, sto
 	p := ParamCreateLUN{
 		NAME:               EncodeLunName(u),
 		PARENTID:           strconv.Itoa(storagePoolID),
-		DESCRIPTION:        "volume-" + u.String(),
+		DESCRIPTION:        PrefixVolumeDescription + u.String(),
 		CAPACITY:           capacityGB * CapacityUnit,
 		WRITEPOLICY:        "1",
 		PREFETCHVALUE:      "0",
@@ -246,6 +257,7 @@ func (d *Device) lunIsReady(ctx context.Context, LUNID int) (bool, error) {
 	return false, nil
 }
 
+// DeleteLUN delete lun object (also include data)
 func (d *Device) DeleteLUN(ctx context.Context, lunID int) error {
 	spath := fmt.Sprintf("/lun/%d", lunID)
 	req, err := d.newRequest(ctx, "DELETE", spath, nil)
@@ -266,6 +278,7 @@ func (d *Device) DeleteLUN(ctx context.Context, lunID int) error {
 	return nil
 }
 
+// ExpandLUN expand lun capacity
 func (d *Device) ExpandLUN(ctx context.Context, lunID int, newLunSizeGb int) error {
 	spath := "/lun/expand"
 	param := struct {
@@ -299,6 +312,7 @@ func (d *Device) ExpandLUN(ctx context.Context, lunID int, newLunSizeGb int) err
 	return nil
 }
 
+// GetAssociateLUNs get lun objects that associated object (ex: host)
 func (d *Device) GetAssociateLUNs(ctx context.Context, query *SearchQuery) ([]LUN, error) {
 	spath := "/lun/associate"
 
@@ -339,13 +353,13 @@ func (d *Device) GetHostLUNID(ctx context.Context, lunID, hostID int) (int, erro
 	for _, lun := range luns {
 		if lun.ID == lunID {
 			jsonStr := lun.ASSOCIATEMETADATA
-			hostLunId := ASSOCIATEMETADATA{}
-			err := json.Unmarshal([]byte(jsonStr), &hostLunId)
+			hostLunID := ASSOCIATEMETADATA{}
+			err := json.Unmarshal([]byte(jsonStr), &hostLunID)
 			if err != nil {
 				return 0, fmt.Errorf("failed to parse ASSOCIATEMETADATA: %w", err)
 			}
 
-			return hostLunId.HostLUNID, nil
+			return hostLunID.HostLUNID, nil
 		}
 	}
 

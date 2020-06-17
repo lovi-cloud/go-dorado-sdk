@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// EthernetPort is type definition
 type EthernetPort struct {
 	BONDID             string `json:"BONDID"`
 	BONDNAME           string `json:"BONDNAME"`
@@ -55,6 +56,7 @@ type EthernetPort struct {
 	ZoneID             string `json:"zoneId"`
 }
 
+// Error const
 var (
 	ErrEthernetPortNotFound = "ethernet port is not found"
 )

@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+// System is system information
 type System struct {
 	CACHEWRITEQUOTA              string `json:"CACHEWRITEQUOTA"`
 	CONFIGMODEL                  string `json:"CONFIGMODEL"`
@@ -48,6 +49,7 @@ type System struct {
 	Wwn                          string `json:"wwn"`
 }
 
+// GetSystem get system information
 func (d *Device) GetSystem(ctx context.Context) (*System, error) {
 	spath := "system"
 

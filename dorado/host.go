@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Host is object of hypervisor (a.k.a. compute node) in dorado.
 type Host struct {
 	DESCRIPTION     string `json:"DESCRIPTION"`
 	HEALTHSTATUS    string `json:"HEALTHSTATUS"`
@@ -31,6 +32,7 @@ type Host struct {
 	TYPE            int    `json:"TYPE"`
 }
 
+// Error const
 const (
 	ErrHostNotFound = "host is not found"
 )
@@ -45,6 +47,7 @@ func encodeHostName(hostname string) string {
 	return hostname
 }
 
+// GetHosts get host objects query by SearchQuery.
 func (d *Device) GetHosts(ctx context.Context, query *SearchQuery) ([]Host, error) {
 	spath := "/host"
 
@@ -70,6 +73,7 @@ func (d *Device) GetHosts(ctx context.Context, query *SearchQuery) ([]Host, erro
 	return hosts, nil
 }
 
+// GetHost get host object by host ID.
 func (d *Device) GetHost(ctx context.Context, hostID int) (*Host, error) {
 	spath := fmt.Sprintf("/host/%d", hostID)
 
@@ -90,6 +94,7 @@ func (d *Device) GetHost(ctx context.Context, hostID int) (*Host, error) {
 	return host, nil
 }
 
+// CreateHost create host object.
 func (d *Device) CreateHost(ctx context.Context, hostname string) (*Host, error) {
 	spath := "/host"
 	param := struct {
@@ -124,6 +129,7 @@ func (d *Device) CreateHost(ctx context.Context, hostname string) (*Host, error)
 	return host, nil
 }
 
+// DeleteHost delete host object.
 func (d *Device) DeleteHost(ctx context.Context, hostID int) error {
 	spath := fmt.Sprintf("/host/%d", hostID)
 

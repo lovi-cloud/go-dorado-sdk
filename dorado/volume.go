@@ -10,6 +10,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+// CreateVolumeRaw create blank HyperMetroPair
 func (c *Client) CreateVolumeRaw(ctx context.Context, name uuid.UUID, capacityGB int, storagePoolName, hyperMetroDomainID string) (*HyperMetroPair, error) {
 	// create volume (= hypermetro enabled lun)
 	localLun, err := c.LocalDevice.CreateLUN(ctx, name, capacityGB, storagePoolName)
@@ -30,6 +31,7 @@ func (c *Client) CreateVolumeRaw(ctx context.Context, name uuid.UUID, capacityGB
 	return hyperMetroPair, nil
 }
 
+// CreateVolumeFromSource create HyperMetroPair to copy from sourceHyperMetroPairID
 func (c *Client) CreateVolumeFromSource(ctx context.Context, name uuid.UUID, capacityGB int, storagePoolName, hyperMetroDomainID string, sourceHyperMetroPairID string) (*HyperMetroPair, error) {
 	source, err := c.GetHyperMetroPair(ctx, sourceHyperMetroPairID)
 	if err != nil {
@@ -54,6 +56,8 @@ func (c *Client) CreateVolumeFromSource(ctx context.Context, name uuid.UUID, cap
 	return hyperMetroPair, nil
 }
 
+// CreateLUNFromSource create lun from source lun.
+// low level function for CreateVolumeFromSource
 func (d *Device) CreateLUNFromSource(ctx context.Context, sourceLUNID int, name uuid.UUID, capacityGB int, storagePoolName string) (*LUN, error) {
 	snapshotName := uuid.NewV4()
 
@@ -90,6 +94,7 @@ func (d *Device) CreateLUNFromSource(ctx context.Context, sourceLUNID int, name 
 	return d.GetLUN(ctx, targetLUN.ID)
 }
 
+// DeleteVolume delete HyperMetroPair
 func (c *Client) DeleteVolume(ctx context.Context, hyperMetroPairID string) error {
 	// 1: delete HyperMetro Pair
 	// 2: delete LUN Group Associate
@@ -106,7 +111,7 @@ func (c *Client) DeleteVolume(ctx context.Context, hyperMetroPairID string) erro
 		return fmt.Errorf("failed to get lun information: %w", err)
 	}
 	if llun.ISADD2LUNGROUP == true {
-		lLungroup, err := c.LocalDevice.GetLunGroupByLunId(ctx, hmp.LOCALOBJID)
+		lLungroup, err := c.LocalDevice.GetLunGroupByLunID(ctx, hmp.LOCALOBJID)
 		if err != nil {
 			return fmt.Errorf("failed to get lungroup by associated lun: %w", err)
 		}
@@ -121,7 +126,7 @@ func (c *Client) DeleteVolume(ctx context.Context, hyperMetroPairID string) erro
 		return fmt.Errorf("failed to get lun information: %w", err)
 	}
 	if rlun.ISADD2LUNGROUP == true {
-		rLungroup, err := c.RemoteDevice.GetLunGroupByLunId(ctx, hmp.REMOTEOBJID)
+		rLungroup, err := c.RemoteDevice.GetLunGroupByLunID(ctx, hmp.REMOTEOBJID)
 		if err != nil {
 			return fmt.Errorf("failed to get lungroup by associated lun: %w", err)
 		}
@@ -156,6 +161,7 @@ func (c *Client) DeleteVolume(ctx context.Context, hyperMetroPairID string) erro
 	return nil
 }
 
+// ExtendVolume expand HyperMetroPair
 func (c *Client) ExtendVolume(ctx context.Context, hyperMetroPairID string, newVolumeSizeGb int) error {
 	// 1: Suspend HyperMetro Pair
 	// 2: Expand LUN
@@ -191,6 +197,7 @@ func (c *Client) ExtendVolume(ctx context.Context, hyperMetroPairID string, newV
 	return nil
 }
 
+// AttachVolume create mapping to host
 func (c *Client) AttachVolume(ctx context.Context, hyperMetroPairID, hostname, iqn string) error {
 	volume, err := c.GetHyperMetroPair(ctx, hyperMetroPairID)
 	if err != nil {
@@ -209,6 +216,7 @@ func (c *Client) AttachVolume(ctx context.Context, hyperMetroPairID, hostname, i
 	return nil
 }
 
+// AttachVolume create mapping to host in device
 func (d *Device) AttachVolume(ctx context.Context, portgroupName, hostname, iqn string, lunID int) error {
 	// wrapper function for client.AttachVolume
 	portgroups, err := d.GetPortGroups(ctx, NewSearchQueryName(portgroupName))
@@ -263,8 +271,9 @@ func (d *Device) AttachVolume(ctx context.Context, portgroupName, hostname, iqn 
 	return nil
 }
 
-func (c *Client) DetachVolume(ctx context.Context, hyperMetroPairId string) error {
-	volume, err := c.GetHyperMetroPair(ctx, hyperMetroPairId)
+// DetachVolume delete mapping from host
+func (c *Client) DetachVolume(ctx context.Context, hyperMetroPairID string) error {
+	volume, err := c.GetHyperMetroPair(ctx, hyperMetroPairID)
 	if err != nil {
 		return fmt.Errorf("failed to get hypermetro pair: %w", err)
 	}
@@ -281,13 +290,14 @@ func (c *Client) DetachVolume(ctx context.Context, hyperMetroPairId string) erro
 	return nil
 }
 
+// DetachVolume delete mapping from host in device
 func (d *Device) DetachVolume(ctx context.Context, lunID int) error {
 	lun, err := d.GetLUN(ctx, lunID)
 	if err != nil {
 		return fmt.Errorf("failed to get LUN: %w", err)
 	}
 
-	lungroup, err := d.GetLunGroupByLunId(ctx, lun.ID)
+	lungroup, err := d.GetLunGroupByLunID(ctx, lun.ID)
 	if err != nil {
 		return fmt.Errorf("failed to get lungroup: %w", err)
 	}

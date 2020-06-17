@@ -10,9 +10,9 @@ import (
 	"github.com/pkg/errors"
 )
 
+// HostGroup is object of multiple host.
 // storage - host mapping must have a host group.
 // host group has only one host under our usage.
-
 type HostGroup struct {
 	DESCRIPTION       string `json:"DESCRIPTION"`
 	ID                int    `json:"ID,string"`
@@ -21,10 +21,12 @@ type HostGroup struct {
 	TYPE              int    `json:"TYPE"`
 }
 
+// Error const
 const (
 	ErrHostGroupNotFound = "HostGroup is not found"
 )
 
+// GetHostGroups get hostgroup objects by query.
 func (d *Device) GetHostGroups(ctx context.Context, query *SearchQuery) ([]HostGroup, error) {
 	spath := "/hostgroup"
 
@@ -50,6 +52,7 @@ func (d *Device) GetHostGroups(ctx context.Context, query *SearchQuery) ([]HostG
 	return hostGroups, nil
 }
 
+// GetHostGroup get hostgroup object by id.
 func (d *Device) GetHostGroup(ctx context.Context, hostgroupID int) (*HostGroup, error) {
 	spath := fmt.Sprintf("/hostgroup/%d", hostgroupID)
 
@@ -70,6 +73,7 @@ func (d *Device) GetHostGroup(ctx context.Context, hostgroupID int) (*HostGroup,
 	return hostGroup, nil
 }
 
+// CreateHostGroup create hostgroup object.
 func (d *Device) CreateHostGroup(ctx context.Context, hostname string) (*HostGroup, error) {
 	spath := "/hostgroup"
 	param := struct {
@@ -100,6 +104,7 @@ func (d *Device) CreateHostGroup(ctx context.Context, hostname string) (*HostGro
 	return hg, nil
 }
 
+// DeleteHostGroup delete hostgroup object.
 func (d *Device) DeleteHostGroup(ctx context.Context, hostGroupID int) error {
 	spath := fmt.Sprintf("/hostgroup/%d", hostGroupID)
 
@@ -120,6 +125,7 @@ func (d *Device) DeleteHostGroup(ctx context.Context, hostGroupID int) error {
 	return nil
 }
 
+// AssociateHost associate hostID to hostgroupID.
 func (d *Device) AssociateHost(ctx context.Context, hostgroupID, hostID int) error {
 	spath := "/hostgroup/associate"
 	param := AssociateParam{
@@ -150,6 +156,7 @@ func (d *Device) AssociateHost(ctx context.Context, hostgroupID, hostID int) err
 	return nil
 }
 
+// DisAssociateHost delete associate hostID from hostgroupID.
 func (d *Device) DisAssociateHost(ctx context.Context, hostgroupID, hostID int) error {
 	spath := "/host/associate"
 
@@ -177,6 +184,8 @@ func (d *Device) DisAssociateHost(ctx context.Context, hostgroupID, hostID int) 
 	return nil
 }
 
+// CreateHostGroupWithHost create hostgroup object and host (same name) object
+// and associate host.
 func (d *Device) CreateHostGroupWithHost(ctx context.Context, hostname string) (*HostGroup, *Host, error) {
 	host, err := d.CreateHost(ctx, hostname)
 	if err != nil {
@@ -196,6 +205,7 @@ func (d *Device) CreateHostGroupWithHost(ctx context.Context, hostname string) (
 	return hostgroup, host, nil
 }
 
+// DeleteHostGroupWithHost delete hostgroup object and host (same name) object.
 func (d *Device) DeleteHostGroupWithHost(ctx context.Context, hostgroupID int) error {
 	hostgroup, err := d.GetHostGroup(ctx, hostgroupID)
 	if err != nil {
@@ -226,6 +236,8 @@ func (d *Device) DeleteHostGroupWithHost(ctx context.Context, hostgroupID int) e
 	return nil
 }
 
+// GetHostGroupForce get hostgroup object and host object.
+// create hostgroup and host object if not exists.
 func (d *Device) GetHostGroupForce(ctx context.Context, hostname string) (*HostGroup, *Host, error) {
 	// GetHostGroup and CreateHostGroup if not found.
 	hostgroups, err := d.GetHostGroups(ctx, NewSearchQueryHostname(hostname))

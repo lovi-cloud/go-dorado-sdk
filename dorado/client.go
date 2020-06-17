@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -17,6 +18,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Client is client for go-dorado-sdk
 type Client struct {
 	LocalDevice  *Device
 	RemoteDevice *Device
@@ -26,10 +28,12 @@ type Client struct {
 	Logger *log.Logger
 }
 
+// Device is device of dorado
 type Device struct {
+	IPAddress  *net.TCPAddr // TODO: implement for dual controller
 	URL        *url.URL
 	HTTPClient *http.Client
-	DeviceId   string
+	DeviceID   string
 	Token      string
 	Jar        *cookiejar.Jar
 
@@ -37,11 +41,13 @@ type Device struct {
 	Password string
 }
 
+// Result is response of REST API
 type Result struct {
 	Data  interface{} `json:"data"`
 	Error ErrorResp   `json:"error"`
 }
 
+// ErrorResp is error response of REST API
 type ErrorResp struct {
 	Code        int    `json:"code"`
 	Description string `json:"description"`
@@ -52,11 +58,29 @@ var (
 	userAgent = fmt.Sprintf("DoradoGoClient")
 )
 
+// default values
 const (
-	DefaultDeviceId = "xx"
+	DefaultDeviceID = "xx"
 )
 
-func NewClient(localIp, remoteIp, username, password, portgroupName string, logger *log.Logger) (*Client, error) {
+// NewClient create go-dorado-sdk client and set iBaseToken create by REST API.
+func NewClient(localIP, remoteIP, username, password, portgroupName string, logger *log.Logger) (*Client, error) {
+	client, err := NewClientDefaultToken(localIP, remoteIP, username, password, portgroupName, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	err = client.SetToken()
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
+
+// NewClientDefaultToken create go-dorado-sdk client.
+// this function not call REST API.
+func NewClientDefaultToken(localIP, remoteIP, username, password, portgroupName string, logger *log.Logger) (*Client, error) {
 	// validate input value
 	if len(username) == 0 {
 		return nil, errors.New("username is required")
@@ -65,8 +89,8 @@ func NewClient(localIp, remoteIp, username, password, portgroupName string, logg
 		return nil, errors.New("password is required")
 	}
 
-	l := log.New(ioutil.Discard, "", log.LstdFlags)
 	if logger == nil {
+		l := log.New(ioutil.Discard, "", log.LstdFlags)
 		logger = l
 	}
 
@@ -77,12 +101,12 @@ func NewClient(localIp, remoteIp, username, password, portgroupName string, logg
 	transport.TLSClientConfig = &tlsConfig
 	httpClient := &http.Client{Transport: &transport}
 
-	localDevice, err := newDevice(localIp, username, password, httpClient)
+	localDevice, err := newDevice(localIP, username, password, httpClient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Local Device: %w", err)
 	}
 
-	remoteDevice, err := newDevice(remoteIp, username, password, httpClient)
+	remoteDevice, err := newDevice(remoteIP, username, password, httpClient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Remote Device: %w", err)
 	}
@@ -98,10 +122,9 @@ func NewClient(localIp, remoteIp, username, password, portgroupName string, logg
 }
 
 func newDevice(ipStr, username, password string, httpClient *http.Client) (*Device, error) {
-	urlStr := fmt.Sprintf("https://%s/deviceManager/rest/%s", ipStr, DefaultDeviceId)
-	parsedURL, err := url.ParseRequestURI(urlStr)
+	parsed, err := net.ResolveTCPAddr("tcp", ipStr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse url: %w", err)
+		return nil, fmt.Errorf("failed to parse input ipstr: %w", err)
 	}
 
 	jar, err := cookiejar.New(nil)
@@ -110,27 +133,62 @@ func newDevice(ipStr, username, password string, httpClient *http.Client) (*Devi
 	}
 
 	d := &Device{
-		URL:        parsedURL,
+		IPAddress:  parsed,
 		HTTPClient: httpClient,
 		Username:   username,
 		Password:   password,
 		Jar:        jar,
 	}
 
-	token, deviceId, err := d.getToken()
+	err = d.setBaseURL("https://"+ipStr, DefaultDeviceID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to getToken: %w", err)
+		return nil, fmt.Errorf("failed to set BaseURL: %w", err)
 	}
-	d.DeviceId = deviceId
-	d.Token = token
-	deviceURL := fmt.Sprintf("https://%s/deviceManager/rest/%s", ipStr, deviceId)
-	parsedDeviceURL, err := url.ParseRequestURI(deviceURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse url: %w", err)
-	}
-	d.URL = parsedDeviceURL
 
 	return d, nil
+}
+
+func (d *Device) setBaseURL(baseHost, token string) error {
+	urlStr := fmt.Sprintf("%s/deviceManager/rest/%s", baseHost, token)
+	parsedURL, err := url.ParseRequestURI(urlStr)
+	if err != nil {
+		return fmt.Errorf("failed to parse url: %w", err)
+	}
+
+	d.URL = parsedURL
+	return nil
+}
+
+// SetToken set iBaseToken from REST API.
+func (c *Client) SetToken() error {
+	var err error
+
+	err = c.LocalDevice.setToken()
+	if err != nil {
+		return fmt.Errorf("failed to set token in local device: %w", err)
+	}
+	err = c.RemoteDevice.setToken()
+	if err != nil {
+		return fmt.Errorf("failed to set token in remote device: %w", err)
+	}
+
+	return nil
+}
+
+func (d *Device) setToken() error {
+	token, deviceID, err := d.getToken()
+	if err != nil {
+		return fmt.Errorf("failed to getToken: %w", err)
+	}
+	d.DeviceID = deviceID
+	d.Token = token
+
+	err = d.setBaseURL("https://"+d.IPAddress.String(), deviceID)
+	if err != nil {
+		return fmt.Errorf("failed to set BaseURL: %w", err)
+	}
+
+	return nil
 }
 
 func (d *Device) newRequest(ctx context.Context, method, spath string, body io.Reader) (*http.Request, error) {
@@ -151,9 +209,10 @@ func (d *Device) newRequest(ctx context.Context, method, spath string, body io.R
 	return req, nil
 }
 
+// Session is response of /sessions
 type Session struct {
 	IBaseToken string `json:"iBaseToken"`
-	DeviceId   string `json:"deviceid"`
+	DeviceID   string `json:"deviceid"`
 }
 
 func (d *Device) getToken() (string, string, error) {
@@ -186,9 +245,5 @@ func (d *Device) getToken() (string, string, error) {
 		return "", "", fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return "", "", fmt.Errorf("failed to get token: %w", body)
-	}
-
-	return body.IBaseToken, body.DeviceId, nil
+	return body.IBaseToken, body.DeviceID, nil
 }

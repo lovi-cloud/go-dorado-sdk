@@ -1,4 +1,3 @@
-example/lib/utils.go
+examples/lib/utils.go
 *.sh
 go.sum
-.idea

@@ -10,7 +10,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/whywaita/go-dorado-sdk/dorado"
 
-	"github.com/whywaita/go-dorado-sdk/example/lib"
+	"github.com/whywaita/go-dorado-sdk/examples/lib"
 )
 
 func main() {

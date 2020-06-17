@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// HyperMetroPairParam is parameter of CreateHyperMetroPair
 type HyperMetroPairParam struct {
 	RECONVERYPOLICY string `json:"RECONVERYPOLICY"`
 	DOMAINID        string `json:"DOMAINID"`
@@ -20,6 +21,7 @@ type HyperMetroPairParam struct {
 	ISFIRSTSYNC     bool   `json:"ISFIRSTSYNC"`
 }
 
+// HyperMetroPair is object of LUN (synced by HyperMetro)
 type HyperMetroPair struct {
 	CAPACITYBYTE             string `json:"CAPACITYBYTE"`
 	CGID                     string `json:"CGID"`
@@ -56,10 +58,12 @@ type HyperMetroPair struct {
 	WRITESECONDARYTIMEOUT    string `json:"WRITESECONDARYTIMEOUT"`
 }
 
+// Error const
 const (
 	ErrHyperMetroPairNotFound = "HyperMetroPair is not found"
 )
 
+// GetHyperMetroPairs get HyperMetro objects by query
 func (c *Client) GetHyperMetroPairs(ctx context.Context, query *SearchQuery) ([]HyperMetroPair, error) {
 	spath := "/HyperMetroPair"
 
@@ -91,6 +95,7 @@ func (c *Client) GetHyperMetroPairs(ctx context.Context, query *SearchQuery) ([]
 	return hyperMetroPairs, nil
 }
 
+// GetHyperMetroPair get HyperMetro object by id
 func (c *Client) GetHyperMetroPair(ctx context.Context, hyperMetroPairID string) (*HyperMetroPair, error) {
 	spath := fmt.Sprintf("/HyperMetroPair/%s", hyperMetroPairID)
 
@@ -111,6 +116,7 @@ func (c *Client) GetHyperMetroPair(ctx context.Context, hyperMetroPairID string)
 	return hyperMetroPair, nil
 }
 
+// CreateHyperMetroPair create HyperMetroPair.
 func (c *Client) CreateHyperMetroPair(ctx context.Context, hyperMetroDomainID string, localLunID, remoteLunID int) (*HyperMetroPair, error) {
 	spath := "/HyperMetroPair"
 	param := &HyperMetroPairParam{
@@ -144,8 +150,9 @@ func (c *Client) CreateHyperMetroPair(ctx context.Context, hyperMetroDomainID st
 	return hyperMetroPair, nil
 }
 
+// DeleteHyperMetroPair delete HyperMetroPair.
+// must be suspend HyperMetro Pair before call this method.
 func (c *Client) DeleteHyperMetroPair(ctx context.Context, hyperMetroPairID string) error {
-	// must be suspend HyperMetro Pair before call this method.
 	spath := fmt.Sprintf("/HyperMetroPair/%s", hyperMetroPairID)
 
 	req, err := c.LocalDevice.newRequest(ctx, "DELETE", spath, nil)
@@ -165,6 +172,7 @@ func (c *Client) DeleteHyperMetroPair(ctx context.Context, hyperMetroPairID stri
 	return nil
 }
 
+// SuspendHyperMetroPair suspend HyperMetro sync.
 func (c *Client) SuspendHyperMetroPair(ctx context.Context, hyperMetroPairID string) error {
 	spath := "/HyperMetroPair/disable_hcpair"
 	param := struct {
@@ -196,6 +204,7 @@ func (c *Client) SuspendHyperMetroPair(ctx context.Context, hyperMetroPairID str
 	return nil
 }
 
+// SyncHyperMetroPair start to sync HyperMetro.
 func (c *Client) SyncHyperMetroPair(ctx context.Context, hyperMetroPairID string) error {
 	spath := "/HyperMetroPair/synchronize_hcpair"
 	param := struct {

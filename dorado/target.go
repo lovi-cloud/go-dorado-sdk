@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// TargetPort is target port (ex: iSCSI)
 type TargetPort struct {
 	ETHPORTID string `json:"ETHPORTID"`
 	ID        string `json:"ID"`
@@ -15,10 +16,12 @@ type TargetPort struct {
 	TYPE      int    `json:"TYPE"`
 }
 
+// Error const
 const (
 	ErrTargetPortNotFound = "target port is not found"
 )
 
+// GetTargetPort get target ports by query
 func (d *Device) GetTargetPort(ctx context.Context, query *SearchQuery) ([]TargetPort, error) {
 	spath := "/iscsi_tgt_port"
 
@@ -45,6 +48,7 @@ func (d *Device) GetTargetPort(ctx context.Context, query *SearchQuery) ([]Targe
 	return targetports, nil
 }
 
+// GetTargetIQNs get target IQN
 func (d *Device) GetTargetIQNs(ctx context.Context) ([]string, error) {
 	targetports, err := d.GetTargetPort(ctx, nil)
 	if err != nil {

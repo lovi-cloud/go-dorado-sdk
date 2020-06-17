@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// MappingView is mapping object for lun
 type MappingView struct {
 	DESCRIPTION         string `json:"DESCRIPTION"`
 	ENABLEINBANDCOMMAND bool   `json:"ENABLEINBANDCOMMAND,string"`
@@ -19,10 +20,12 @@ type MappingView struct {
 	TYPE                int    `json:"TYPE"`
 }
 
+// Error const
 const (
 	ErrMappingViewNotFound = "mapping view is not found"
 )
 
+// GetMappingViews get mapping view objects by query
 func (d *Device) GetMappingViews(ctx context.Context, query *SearchQuery) ([]MappingView, error) {
 	spath := "/mappingview"
 
@@ -49,6 +52,7 @@ func (d *Device) GetMappingViews(ctx context.Context, query *SearchQuery) ([]Map
 	return mappingviews, nil
 }
 
+// GetMappingView get mapping view object by id
 func (d *Device) GetMappingView(ctx context.Context, mappingviewID int) (*MappingView, error) {
 	spath := fmt.Sprintf("/mappingview/%d", mappingviewID)
 
@@ -69,6 +73,7 @@ func (d *Device) GetMappingView(ctx context.Context, mappingviewID int) (*Mappin
 	return mappingview, nil
 }
 
+// CreateMappingView create mapping view object
 func (d *Device) CreateMappingView(ctx context.Context, hostname string) (*MappingView, error) {
 	spath := "/mappingview"
 	param := struct {
@@ -100,6 +105,7 @@ func (d *Device) CreateMappingView(ctx context.Context, hostname string) (*Mappi
 	return mappingview, nil
 }
 
+// DeleteMappingView delete mapping view object
 func (d *Device) DeleteMappingView(ctx context.Context, mappingviewID int) error {
 	spath := fmt.Sprintf("/mappingview/%d", mappingviewID)
 
@@ -120,6 +126,7 @@ func (d *Device) DeleteMappingView(ctx context.Context, mappingviewID int) error
 	return nil
 }
 
+// AssociateMappingView associate object to mapping view
 func (d *Device) AssociateMappingView(ctx context.Context, param AssociateParam) error {
 	spath := "/mappingview/create_associate"
 
@@ -144,6 +151,7 @@ func (d *Device) AssociateMappingView(ctx context.Context, param AssociateParam)
 	return nil
 }
 
+// DisAssociateMappingView disassociate object from mapping view
 func (d *Device) DisAssociateMappingView(ctx context.Context, param AssociateParam) error {
 	spath := "/mappingview/remove_associate"
 
@@ -168,6 +176,7 @@ func (d *Device) DisAssociateMappingView(ctx context.Context, param AssociatePar
 	return nil
 }
 
+// GetMappingViewForce get mapping view object and create if not exist
 func (d *Device) GetMappingViewForce(ctx context.Context, hostname string) (*MappingView, error) {
 	mappingviews, err := d.GetMappingViews(ctx, NewSearchQueryHostname(hostname))
 	if err != nil {
@@ -185,6 +194,7 @@ func (d *Device) GetMappingViewForce(ctx context.Context, hostname string) (*Map
 	return &mappingviews[0], nil
 }
 
+// DoMapping do mapping hostgroup/lungroup/portgroup to mappingview id
 func (d *Device) DoMapping(ctx context.Context, mappingview *MappingView, hostgroup *HostGroup, lungroup *LunGroup, portgroupID int) error {
 	param := AssociateParam{
 		ID:   strconv.Itoa(mappingview.ID),
