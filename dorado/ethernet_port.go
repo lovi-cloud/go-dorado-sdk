@@ -56,6 +56,7 @@ type EthernetPort struct {
 	ZoneID             string `json:"zoneId"`
 }
 
+// Error const
 var (
 	ErrEthernetPortNotFound = "ethernet port is not found"
 )

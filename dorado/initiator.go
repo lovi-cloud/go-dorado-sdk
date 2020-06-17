@@ -180,7 +180,7 @@ func (d *Device) UpdateInitiator(ctx context.Context, iqn string, initiatorParam
 
 // GetInitiatorForce get initiator and create initiator if not exists.
 func (d *Device) GetInitiatorForce(ctx context.Context, iqn string) (*Initiator, error) {
-	initiators, err := d.GetInitiators(ctx, NewSearchQueryId(encodeIqn(iqn)))
+	initiators, err := d.GetInitiators(ctx, NewSearchQueryID(encodeIqn(iqn)))
 	if err != nil {
 		if err.Error() == ErrInitiatorNotFound {
 			return d.CreateInitiator(ctx, iqn)
