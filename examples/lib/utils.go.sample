@@ -8,11 +8,13 @@ import (
 	"github.com/whywaita/go-dorado-sdk/dorado"
 )
 
+// input param
 const (
 	StoragePoolName      = ""
 	HyperMetroDomainName = ""
 )
 
+// GetClient get dorado.Client
 func GetClient() (*dorado.Client, error) {
 	username := "admin"
 	password := ""
