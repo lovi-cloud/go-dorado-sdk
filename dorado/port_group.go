@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// PortGroup is group of Port (ex Ethernet, FiberChannel...)
 type PortGroup struct {
 	DESCRIPTION string `json:"DESCRIPTION"`
 	ID          int    `json:"ID,string"`
@@ -15,10 +16,12 @@ type PortGroup struct {
 	TYPE        int    `json:"TYPE"`
 }
 
+// Error const
 const (
 	ErrPortGroupNotFound = "PortGroup is not found"
 )
 
+// GetPortGroups get port groups by query
 func (d *Device) GetPortGroups(ctx context.Context, query *SearchQuery) ([]PortGroup, error) {
 	spath := "/portgroup"
 
@@ -45,6 +48,7 @@ func (d *Device) GetPortGroups(ctx context.Context, query *SearchQuery) ([]PortG
 	return portgroups, nil
 }
 
+// GetPortGroup get port group by id
 func (d *Device) GetPortGroup(ctx context.Context, portgroupID int) (*PortGroup, error) {
 	spath := fmt.Sprintf("/portgroup/%d", portgroupID)
 
@@ -65,6 +69,7 @@ func (d *Device) GetPortGroup(ctx context.Context, portgroupID int) (*PortGroup,
 	return portgroup, nil
 }
 
+// GetPortGroupsAssociate get port group that associated by mapping view id
 func (d *Device) GetPortGroupsAssociate(ctx context.Context, mappingviewID int) ([]PortGroup, error) {
 	spath := "/portgroup/associate"
 
@@ -90,6 +95,7 @@ func (d *Device) GetPortGroupsAssociate(ctx context.Context, mappingviewID int) 
 	return portgroups, nil
 }
 
+// IsAddToMappingViewPortGroup check to associated mapping view
 func (d *Device) IsAddToMappingViewPortGroup(ctx context.Context, mappingViewID, portgroupID int) (bool, error) {
 	portgroups, err := d.GetPortGroupsAssociate(ctx, mappingViewID)
 	if err != nil {
