@@ -30,12 +30,12 @@ type Client struct {
 
 // Device is device of dorado
 type Device struct {
-	IPAddress  *net.TCPAddr // TODO: implement for dual controller
-	URL        *url.URL
-	HTTPClient *http.Client
-	DeviceID   string
-	Token      string
-	Jar        *cookiejar.Jar
+	IPAddresses []*net.TCPAddr
+	URL         *url.URL
+	HTTPClient  *http.Client
+	DeviceID    string
+	Token       string
+	Jar         *cookiejar.Jar
 
 	Username string
 	Password string
@@ -64,8 +64,8 @@ const (
 )
 
 // NewClient create go-dorado-sdk client and set iBaseToken create by REST API.
-func NewClient(localIP, remoteIP, username, password, portgroupName string, logger *log.Logger) (*Client, error) {
-	client, err := NewClientDefaultToken(localIP, remoteIP, username, password, portgroupName, logger)
+func NewClient(localIPs, remoteIPs []string, username, password, portgroupName string, logger *log.Logger) (*Client, error) {
+	client, err := NewClientDefaultToken(localIPs, remoteIPs, username, password, portgroupName, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -80,13 +80,16 @@ func NewClient(localIP, remoteIP, username, password, portgroupName string, logg
 
 // NewClientDefaultToken create go-dorado-sdk client.
 // this function not call REST API.
-func NewClientDefaultToken(localIP, remoteIP, username, password, portgroupName string, logger *log.Logger) (*Client, error) {
+func NewClientDefaultToken(localIPs, remoteIPs []string, username, password, portgroupName string, logger *log.Logger) (*Client, error) {
 	// validate input value
 	if len(username) == 0 {
 		return nil, errors.New("username is required")
 	}
 	if len(password) == 0 {
 		return nil, errors.New("password is required")
+	}
+	if len(localIPs) == 0 || len(remoteIPs) == 1 {
+		return nil, errors.New("IPs is required")
 	}
 
 	if logger == nil {
@@ -101,12 +104,12 @@ func NewClientDefaultToken(localIP, remoteIP, username, password, portgroupName 
 	transport.TLSClientConfig = &tlsConfig
 	httpClient := &http.Client{Transport: &transport}
 
-	localDevice, err := newDevice(localIP, username, password, httpClient)
+	localDevice, err := newDevice(localIPs, username, password, httpClient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Local Device: %w", err)
 	}
 
-	remoteDevice, err := newDevice(remoteIP, username, password, httpClient)
+	remoteDevice, err := newDevice(remoteIPs, username, password, httpClient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Remote Device: %w", err)
 	}
@@ -121,10 +124,15 @@ func NewClientDefaultToken(localIP, remoteIP, username, password, portgroupName 
 	return c, nil
 }
 
-func newDevice(ipStr, username, password string, httpClient *http.Client) (*Device, error) {
-	parsed, err := net.ResolveTCPAddr("tcp", ipStr)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse input ipstr: %w", err)
+func newDevice(ips []string, username, password string, httpClient *http.Client) (*Device, error) {
+	var parsedIPs []*net.TCPAddr
+	for _, ipStr := range ips {
+		parsed, err := net.ResolveTCPAddr("tcp", ipStr)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse input ipstr: %w", err)
+		}
+
+		parsedIPs = append(parsedIPs, parsed)
 	}
 
 	jar, err := cookiejar.New(nil)
@@ -133,16 +141,11 @@ func newDevice(ipStr, username, password string, httpClient *http.Client) (*Devi
 	}
 
 	d := &Device{
-		IPAddress:  parsed,
-		HTTPClient: httpClient,
-		Username:   username,
-		Password:   password,
-		Jar:        jar,
-	}
-
-	err = d.setBaseURL("https://"+ipStr, DefaultDeviceID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to set BaseURL: %w", err)
+		IPAddresses: parsedIPs,
+		HTTPClient:  httpClient,
+		Username:    username,
+		Password:    password,
+		Jar:         jar,
 	}
 
 	return d, nil
@@ -163,11 +166,11 @@ func (d *Device) setBaseURL(baseHost, token string) error {
 func (c *Client) SetToken() error {
 	var err error
 
-	err = c.LocalDevice.setToken()
+	err = c.LocalDevice.setToken(c.Logger)
 	if err != nil {
 		return fmt.Errorf("failed to set token in local device: %w", err)
 	}
-	err = c.RemoteDevice.setToken()
+	err = c.RemoteDevice.setToken(c.Logger)
 	if err != nil {
 		return fmt.Errorf("failed to set token in remote device: %w", err)
 	}
@@ -175,20 +178,31 @@ func (c *Client) SetToken() error {
 	return nil
 }
 
-func (d *Device) setToken() error {
-	token, deviceID, err := d.getToken()
-	if err != nil {
-		return fmt.Errorf("failed to getToken: %w", err)
-	}
-	d.DeviceID = deviceID
-	d.Token = token
+func (d *Device) setToken(logger *log.Logger) error {
+	for _, ip := range d.IPAddresses {
+		err := d.setBaseURL("https://"+ip.String(), DefaultDeviceID)
+		if err != nil {
+			return fmt.Errorf("failed to set BaseURL: %w", err)
+		}
 
-	err = d.setBaseURL("https://"+d.IPAddress.String(), deviceID)
-	if err != nil {
-		return fmt.Errorf("failed to set BaseURL: %w", err)
+		token, deviceID, err := d.getToken()
+		if err != nil {
+			logger.Printf("cannot get token, continue next IP Address (IP: %s): %s", ip.String(), err)
+			continue
+		}
+		d.DeviceID = deviceID
+		d.Token = token
+
+		err = d.setBaseURL("https://"+ip.String(), deviceID)
+		if err != nil {
+			return fmt.Errorf("failed to set BaseURL: %w", err)
+		}
+
+		logger.Printf("successlay setToken! (IP: %s)", ip.String())
+		return nil
 	}
 
-	return nil
+	return errors.New("cannot setToken in all IP addresses")
 }
 
 func (d *Device) newRequest(ctx context.Context, method, spath string, body io.Reader) (*http.Request, error) {

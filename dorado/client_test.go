@@ -19,7 +19,8 @@ func setup() (client *Client, mux *http.ServeMux, serverURL string, teardown fun
 
 	server := httptest.NewServer(apiHandler)
 
-	client, err := NewClientDefaultToken("192.0.2.1:80", "192.0.2.2:80", "username", "password", "portgroup", nil)
+	dummyIPs := []string{"192.0.2.1:80", "192.0.2.2:80"} // not used
+	client, err := NewClientDefaultToken(dummyIPs, dummyIPs, "username", "password", "portgroup", nil)
 	if err != nil {
 		log.Fatalf("failed to create dorado.Client: %s", err)
 	}
