@@ -2,13 +2,16 @@ package dorado
 
 import (
 	"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"testing"
 )
 
-func TestDecodeBody(t *testing.T) {
-	errResp := `
+func TestDecodeBodyInterface(t *testing.T) {
+	input := `
 {
   "data": [],
   "error": {
@@ -17,21 +20,100 @@ func TestDecodeBody(t *testing.T) {
     "suggestion": "Contact technical support engineers."
   }
 }`
-	resp := http.Response{Body: ioutil.NopCloser(bytes.NewBufferString(errResp))}
-
-	var i interface{}
-	err := decodeBody(&resp, i)
-	if err == nil {
-		t.Errorf("decodeBody return error is nil, want to return error response")
-	}
-
+	resp := &http.Response{Body: ioutil.NopCloser(bytes.NewBufferString(input))}
 	want := ErrorResp{
 		Code:        1077949002,
 		Description: "The operation is not supported.",
 		Suggestion:  "Contact technical support engineers.",
 	}
 
+	var i interface{}
+	err := decodeBody(resp, i)
+	if err == nil {
+		t.Errorf("decodeBody return error is nil, want to return error response")
+	}
+
+	fmt.Println(err)
 	if err.Error() != want.Error().Error() {
 		t.Errorf("decodeBody return %+v, want %+v", err, want)
+	}
+}
+
+func TestDecodeBodyErrorInvalidParameter(t *testing.T) {
+	input := `{
+  "data": {},
+  "error": {
+    "code": 1077674272,
+    "description": "The entered HyperMetro parameters are invalid.",
+    "suggestion": "Enter valid parameters."
+  }
+}`
+	resp := &http.Response{Body: ioutil.NopCloser(bytes.NewBufferString(input))}
+	want := ErrorResp{
+		Code:        1077674272,
+		Description: "The entered HyperMetro parameters are invalid.",
+		Suggestion:  "Enter valid parameters.",
+	}
+
+	hyperMetroPair := &HyperMetroPair{}
+	err := decodeBody(resp, &hyperMetroPair)
+	if err == nil {
+		t.Errorf("decodeBody return error is nil, want to return error response")
+	}
+
+	if err.Error() != want.Error().Error() {
+		t.Errorf("decodeBody return %+v, want %+v", err, want)
+	}
+}
+
+func TestDecodeBodySlice(t *testing.T) {
+	input := `
+{
+  "data": [],
+  "error": {
+    "code": 1077949002,
+    "description": "The operation is not supported.",
+    "suggestion": "Contact technical support engineers."
+  }
+}`
+	resp := &http.Response{Body: ioutil.NopCloser(bytes.NewBufferString(input))}
+	want := ErrorResp{
+		Code:        1077949002,
+		Description: "The operation is not supported.",
+		Suggestion:  "Contact technical support engineers.",
+	}
+
+	hyperMetroPairs := []HyperMetroPair{}
+	err := decodeBody(resp, &hyperMetroPairs)
+	if err == nil {
+		t.Errorf("decodeBody return error is nil, want to return error response")
+	}
+
+	if err.Error() != want.Error().Error() {
+		t.Errorf("decodeBody return %+v, want %+v", err, want)
+	}
+}
+
+func TestDecodeBodySliceBadInput(t *testing.T) {
+	input := `
+{
+  "data": {},
+  "error": {
+    "code": 1077949002,
+    "description": "The operation is not supported.",
+    "suggestion": "Contact technical support engineers."
+  }
+}`
+	resp := &http.Response{Body: ioutil.NopCloser(bytes.NewBufferString(input))}
+
+	hyperMetroPairs := []HyperMetroPair{} // input "data" is {} (not slice), but catch slice
+	err := decodeBody(resp, &hyperMetroPairs)
+	if err == nil {
+		t.Errorf("decodeBody return error is nil, want to return error response")
+	}
+
+	var unmarshalTypeError *json.UnmarshalTypeError
+	if !errors.As(err, &unmarshalTypeError) {
+		t.Errorf("decodeBody return %+v, want %+v", err, unmarshalTypeError)
 	}
 }
