@@ -12,7 +12,7 @@ const (
 	MaxNameLength = 31
 )
 
-// Type definition
+// Object Type Numbers
 const (
 	TypeHost             = 21
 	TypeHostGroup        = 14
@@ -38,7 +38,7 @@ const (
 	StatusToBeSynchronized = 100
 )
 
-// For HEALTHSTATUS
+// For HEALTHSTATUS status
 const (
 	StatusHealth = 1
 )
@@ -51,7 +51,7 @@ const (
 	StatusSnapshotInactive = 45
 )
 
-// Error codes
+// Dorado return Error Codes
 const (
 	ErrorCodeUnAuthorized = -401
 )
