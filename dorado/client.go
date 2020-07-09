@@ -58,11 +58,6 @@ var (
 	userAgent = fmt.Sprintf("DoradoGoClient")
 )
 
-// default values
-const (
-	DefaultDeviceID = "xx"
-)
-
 // NewClient create go-dorado-sdk client and set iBaseToken create by REST API.
 func NewClient(localIPs, remoteIPs []string, username, password, portgroupName string, logger *log.Logger) (*Client, error) {
 	client, err := NewClientDefaultToken(localIPs, remoteIPs, username, password, portgroupName, logger)

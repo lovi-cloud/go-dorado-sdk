@@ -71,11 +71,21 @@ var (
 	ErrSnapshotNotFound         = errors.New("snapshot is not found")
 	ErrStoragePoolNotFound      = errors.New("storage pool is not found")
 	ErrTargetPortNotFound       = errors.New("target port is not found")
+
+	ErrUnAuthorized = errors.New("failed to authorized token")
+
+	// parent Error
+	ErrCreateRequest    = "failed to create request"
+	ErrHTTPRequestDo    = "failed to HTTP request"
+	ErrDecodeBody       = "failed to decodeBody"
+	ErrCreatePostValue  = "failed to create post value"
+	ErrRequestWithRetry = "failed to request with retry"
 )
 
 // Default values
 const (
 	DefaultLUNCopyTimeoutSecond = 60
+	DefaultDeviceID             = "xx"
 )
 
 // AssociateParam is parameter of associate functions

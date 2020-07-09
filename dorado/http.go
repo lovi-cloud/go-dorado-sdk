@@ -2,20 +2,8 @@ package dorado
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
-	"strings"
-)
-
-// Error const
-const (
-	ErrCreateRequest    = "failed to create request"
-	ErrHTTPRequestDo    = "failed to HTTP request"
-	ErrDecodeBody       = "failed to decodeBody"
-	ErrCreatePostValue  = "failed to create post value"
-	ErrRequestWithRetry = "failed to request with retry"
-	ErrUnAuthorized     = "failed to authorized token"
 )
 
 func decodeBody(resp *http.Response, out interface{}) error {
@@ -44,7 +32,7 @@ func (e ErrorResp) Error() error {
 		return nil
 	case ErrorCodeUnAuthorized:
 		// please retry
-		return errors.New(ErrUnAuthorized)
+		return ErrUnAuthorized
 	}
 
 	return fmt.Errorf("Dorado Internal Error: %s (code: %d) Suggestion: %s", e.Description, e.Code, e.Suggestion)
@@ -60,7 +48,7 @@ func (d *Device) requestWithRetry(req *http.Request, out interface{}, retried bo
 
 	err = decodeBody(resp, out)
 	if err != nil && retried == false {
-		if strings.EqualFold(err.Error(), ErrUnAuthorized) {
+		if err == ErrUnAuthorized {
 			// retry after refresh token
 			err = d.setToken()
 			if err != nil {
