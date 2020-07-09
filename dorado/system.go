@@ -59,15 +59,9 @@ func (d *Device) GetSystem(ctx context.Context) (*System, error) {
 	}
 	req.URL.Path = req.URL.Path + "/" // path.Join trim last slash
 
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
-
 	system := &System{}
-	err = decodeBody(resp, system)
-	if err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, system, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return system, nil

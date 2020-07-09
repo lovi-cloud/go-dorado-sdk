@@ -46,14 +46,10 @@ func (d *Device) GetHyperMetroDomains(ctx context.Context, query *SearchQuery) (
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	req = AddSearchQuery(req, query)
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	var hyperMetroDomains []HyperMetroDomain
-	if err = decodeBody(resp, &hyperMetroDomains); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, &hyperMetroDomains, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	if len(hyperMetroDomains) == 0 {

@@ -31,21 +31,16 @@ func (d *Device) GetPortGroups(ctx context.Context, query *SearchQuery) ([]PortG
 	}
 	req = AddSearchQuery(req, query)
 
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
+	var portGroups []PortGroup
+	if err = d.requestWithRetry(req, &portGroups, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
-	portgroups := []PortGroup{}
-	if err = decodeBody(resp, &portgroups); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
-	}
-
-	if len(portgroups) == 0 {
+	if len(portGroups) == 0 {
 		return nil, errors.New(ErrPortGroupNotFound)
 	}
 
-	return portgroups, nil
+	return portGroups, nil
 }
 
 // GetPortGroup get port group by id
@@ -56,17 +51,13 @@ func (d *Device) GetPortGroup(ctx context.Context, portgroupID int) (*PortGroup,
 	if err != nil {
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
+
+	portGroup := &PortGroup{}
+	if err = d.requestWithRetry(req, portGroup, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
-	portgroup := &PortGroup{}
-	if err = decodeBody(resp, portgroup); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
-	}
-
-	return portgroup, nil
+	return portGroup, nil
 }
 
 // GetPortGroupsAssociate get port group that associated by mapping view id
@@ -82,17 +73,13 @@ func (d *Device) GetPortGroupsAssociate(ctx context.Context, mappingviewID int) 
 		ASSOCIATEOBJTYPE: TypeMappingView,
 	}
 	req = AddAssociateParam(req, param)
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
+
+	var portGroups []PortGroup
+	if err = d.requestWithRetry(req, &portGroups, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
-	portgroups := []PortGroup{}
-	if err = decodeBody(resp, &portgroups); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
-	}
-
-	return portgroups, nil
+	return portGroups, nil
 }
 
 // IsAddToMappingViewPortGroup check to associated mapping view

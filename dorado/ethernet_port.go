@@ -76,14 +76,9 @@ func (d *Device) GetAssociatedEthernetPort(ctx context.Context, query *SearchQue
 	}
 	req = AddSearchQuery(req, query)
 
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
-
-	etherports := []EthernetPort{}
-	if err = decodeBody(resp, &etherports); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
+	var etherports []EthernetPort
+	if err = d.requestWithRetry(req, &etherports, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	if len(etherports) == 0 {

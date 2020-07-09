@@ -31,21 +31,16 @@ func (d *Device) GetTargetPort(ctx context.Context, query *SearchQuery) ([]Targe
 	}
 	req = AddSearchQuery(req, query)
 
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
+	var targetPorts []TargetPort
+	if err = d.requestWithRetry(req, &targetPorts, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
-	targetports := []TargetPort{}
-	if err = decodeBody(resp, &targetports); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
-	}
-
-	if len(targetports) == 0 {
+	if len(targetPorts) == 0 {
 		return nil, errors.New(ErrTargetPortNotFound)
 	}
 
-	return targetports, nil
+	return targetPorts, nil
 }
 
 // GetTargetIQNs get target IQN

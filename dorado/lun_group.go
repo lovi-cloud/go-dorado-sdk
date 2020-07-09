@@ -36,14 +36,10 @@ func (d *Device) GetLunGroups(ctx context.Context, query *SearchQuery) ([]LunGro
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	req = AddSearchQuery(req, query)
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
-	lunGroups := []LunGroup{}
-	if err = decodeBody(resp, &lunGroups); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
+	var lunGroups []LunGroup
+	if err = d.requestWithRetry(req, &lunGroups, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	if len(lunGroups) == 0 {
@@ -61,14 +57,10 @@ func (d *Device) GetLunGroup(ctx context.Context, lungroupID int) (*LunGroup, er
 	if err != nil {
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	lunGroup := &LunGroup{}
-	if err = decodeBody(resp, lunGroup); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, lunGroup, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return lunGroup, nil
@@ -95,14 +87,10 @@ func (d *Device) CreateLunGroup(ctx context.Context, hostname string) (*LunGroup
 	if err != nil {
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	lunGroup := &LunGroup{}
-	if err = decodeBody(resp, lunGroup); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, lunGroup, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return lunGroup, nil
@@ -116,14 +104,10 @@ func (d *Device) DeleteLunGroup(ctx context.Context, lungroupID int) error {
 	if err != nil {
 		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, i); err != nil {
-		return fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, i, false); err != nil {
+		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return nil
@@ -146,14 +130,10 @@ func (d *Device) AssociateLun(ctx context.Context, lungroupID, lunID int) error 
 	if err != nil {
 		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, i); err != nil {
-		return fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, i, false); err != nil {
+		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return nil
@@ -173,14 +153,10 @@ func (d *Device) DisAssociateLun(ctx context.Context, lungroupID, lunID int) err
 		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	req = AddAssociateParam(req, param)
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, i); err != nil {
-		return fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, i, false); err != nil {
+		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return nil
@@ -195,17 +171,13 @@ func (d *Device) GetAssociateLunGroups(ctx context.Context, query *SearchQuery) 
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	req = AddSearchQuery(req, query)
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
+
+	var lunGroups []LunGroup
+	if err = d.requestWithRetry(req, &lunGroups, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
-	lungroups := []LunGroup{}
-	if err = decodeBody(resp, &lungroups); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
-	}
-
-	return lungroups, nil
+	return lunGroups, nil
 }
 
 // GetLunGroupByLunID get associated lun group by lun id.

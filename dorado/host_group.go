@@ -35,14 +35,10 @@ func (d *Device) GetHostGroups(ctx context.Context, query *SearchQuery) ([]HostG
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	req = AddSearchQuery(req, query)
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
-	hostGroups := []HostGroup{}
-	if err = decodeBody(resp, &hostGroups); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
+	var hostGroups []HostGroup
+	if err = d.requestWithRetry(req, &hostGroups, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	if len(hostGroups) == 0 {
@@ -60,14 +56,10 @@ func (d *Device) GetHostGroup(ctx context.Context, hostgroupID int) (*HostGroup,
 	if err != nil {
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	hostGroup := &HostGroup{}
-	if err = decodeBody(resp, hostGroup); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, hostGroup, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return hostGroup, nil
@@ -91,17 +83,13 @@ func (d *Device) CreateHostGroup(ctx context.Context, hostname string) (*HostGro
 	if err != nil {
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
+
+	hostGroup := &HostGroup{}
+	if err = d.requestWithRetry(req, hostGroup, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
-	hg := &HostGroup{}
-	if err = decodeBody(resp, hg); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
-	}
-
-	return hg, nil
+	return hostGroup, nil
 }
 
 // DeleteHostGroup delete hostgroup object.
@@ -112,14 +100,10 @@ func (d *Device) DeleteHostGroup(ctx context.Context, hostGroupID int) error {
 	if err != nil {
 		return fmt.Errorf(ErrCreatePostValue+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, i); err != nil {
-		return fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, i, false); err != nil {
+		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return nil
@@ -143,14 +127,10 @@ func (d *Device) AssociateHost(ctx context.Context, hostgroupID, hostID int) err
 	if err != nil {
 		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, i); err != nil {
-		return fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, i, false); err != nil {
+		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return nil
@@ -171,14 +151,9 @@ func (d *Device) DisAssociateHost(ctx context.Context, hostgroupID, hostID int) 
 	q.Add("TYPE", strconv.Itoa(TypeHostGroup))
 	req.URL.RawQuery = q.Encode()
 
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
-
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, i); err != nil {
-		return fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, i, false); err != nil {
+		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return nil
