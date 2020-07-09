@@ -81,8 +81,8 @@ type LUN struct {
 	TakeOverLunWwn              string `json:"takeOverLunWwn"`
 }
 
-// ASSOCIATEMETADATA is one of LUN parameter
-type ASSOCIATEMETADATA struct {
+// AssociateMetaData is one of LUN parameter
+type AssociateMetaData struct {
 	HostLUNID int `json:"HostLUNID"`
 }
 
@@ -100,11 +100,6 @@ type ParamCreateLUN struct {
 	WORKLOADTYPEID     string `json:"WORKLOADTYPEID"`
 	PREFETCHPOLICY     string `json:"PREFETCHPOLICY"`
 }
-
-// Error const
-const (
-	ErrLunNotFound = "LUN is not found"
-)
 
 // PrefixVolumeDescription is prefix of volume Description
 var PrefixVolumeDescription = "volume-"
@@ -129,21 +124,15 @@ func (d *Device) GetLUNs(ctx context.Context, query *SearchQuery) ([]LUN, error)
 	if err != nil {
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-
 	req = AddSearchQuery(req, query)
 
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
-
-	luns := []LUN{}
-	if err = decodeBody(resp, &luns); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
+	var luns []LUN
+	if err = d.requestWithRetry(req, &luns, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	if len(luns) == 0 {
-		return nil, errors.New(ErrLunNotFound)
+		return nil, ErrLunNotFound
 	}
 
 	return luns, nil
@@ -157,14 +146,10 @@ func (d *Device) GetLUN(ctx context.Context, lunID int) (*LUN, error) {
 	if err != nil {
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	lun := &LUN{}
-	if err = decodeBody(resp, lun); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, lun, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return lun, nil
@@ -207,14 +192,9 @@ func (d *Device) CreateLUN(ctx context.Context, u uuid.UUID, capacityGB int, sto
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
-
 	lun := &LUN{}
-	if err := decodeBody(resp, lun); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, lun, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return lun, nil
@@ -265,14 +245,9 @@ func (d *Device) DeleteLUN(ctx context.Context, lunID int) error {
 		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
-
 	var i interface{} // this endpoint return N/A
-	if err := decodeBody(resp, i); err != nil {
-		return fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, i, false); err != nil {
+		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return nil
@@ -299,14 +274,10 @@ func (d *Device) ExpandLUN(ctx context.Context, lunID int, newLunSizeGb int) err
 	if err != nil {
 		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, i); err != nil {
-		return fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, i, false); err != nil {
+		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return nil
@@ -321,18 +292,14 @@ func (d *Device) GetAssociateLUNs(ctx context.Context, query *SearchQuery) ([]LU
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	req = AddSearchQuery(req, query)
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
-	luns := []LUN{}
-	if err = decodeBody(resp, &luns); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
+	var luns []LUN
+	if err = d.requestWithRetry(req, &luns, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	if len(luns) == 0 {
-		return nil, errors.New(ErrLunNotFound)
+		return nil, ErrLunNotFound
 	}
 
 	return luns, nil
@@ -353,7 +320,7 @@ func (d *Device) GetHostLUNID(ctx context.Context, lunID, hostID int) (int, erro
 	for _, lun := range luns {
 		if lun.ID == lunID {
 			jsonStr := lun.ASSOCIATEMETADATA
-			hostLunID := ASSOCIATEMETADATA{}
+			hostLunID := AssociateMetaData{}
 			err := json.Unmarshal([]byte(jsonStr), &hostLunID)
 			if err != nil {
 				return 0, fmt.Errorf("failed to parse ASSOCIATEMETADATA: %w", err)

@@ -1,6 +1,7 @@
 package dorado
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 )
@@ -11,7 +12,7 @@ const (
 	MaxNameLength = 31
 )
 
-// Type definition
+// Object Type Numbers
 const (
 	TypeHost             = 21
 	TypeHostGroup        = 14
@@ -37,7 +38,7 @@ const (
 	StatusToBeSynchronized = 100
 )
 
-// For HEALTHSTATUS
+// For HEALTHSTATUS status
 const (
 	StatusHealth = 1
 )
@@ -48,6 +49,43 @@ const (
 	StatusLunCopyReady     = 40
 	StatusSnapshotActive   = 43
 	StatusSnapshotInactive = 45
+)
+
+// Dorado return Error Codes
+const (
+	ErrorCodeUnAuthorized = -401
+)
+
+// Error Values
+var (
+	ErrEthernetPortNotFound     = errors.New("ethernet port is not found")
+	ErrHostNotFound             = errors.New("host is not found")
+	ErrHostGroupNotFound        = errors.New("host group is not found")
+	ErrHyperMetroDomainNotFound = errors.New("HyperMetroDomain ID is not found")
+	ErrHyperMetroPairNotFound   = errors.New("HyperMetroPair is not found")
+	ErrInitiatorNotFound        = errors.New("initiator is not found")
+	ErrLunNotFound              = errors.New("LUN is not found")
+	ErrLunGroupNotFound         = errors.New("LUN Group is not found")
+	ErrMappingViewNotFound      = errors.New("mapping view is not found")
+	ErrPortGroupNotFound        = errors.New("port group is not found")
+	ErrSnapshotNotFound         = errors.New("snapshot is not found")
+	ErrStoragePoolNotFound      = errors.New("storage pool is not found")
+	ErrTargetPortNotFound       = errors.New("target port is not found")
+
+	ErrUnAuthorized = errors.New("failed to authorized token")
+
+	// parent Error
+	ErrCreateRequest    = "failed to create request"
+	ErrHTTPRequestDo    = "failed to HTTP request"
+	ErrDecodeBody       = "failed to decodeBody"
+	ErrCreatePostValue  = "failed to create post value"
+	ErrRequestWithRetry = "failed to request with retry"
+)
+
+// Default values
+const (
+	DefaultLUNCopyTimeoutSecond = 60
+	DefaultDeviceID             = "xx"
 )
 
 // AssociateParam is parameter of associate functions

@@ -6,8 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-
-	"github.com/pkg/errors"
 )
 
 // HyperMetroPairParam is parameter of CreateHyperMetroPair
@@ -58,11 +56,6 @@ type HyperMetroPair struct {
 	WRITESECONDARYTIMEOUT    string `json:"WRITESECONDARYTIMEOUT"`
 }
 
-// Error const
-const (
-	ErrHyperMetroPairNotFound = "HyperMetroPair is not found"
-)
-
 // GetHyperMetroPairs get HyperMetro objects by query
 func (c *Client) GetHyperMetroPairs(ctx context.Context, query *SearchQuery) ([]HyperMetroPair, error) {
 	spath := "/HyperMetroPair"
@@ -78,18 +71,13 @@ func (c *Client) GetHyperMetroPairs(ctx context.Context, query *SearchQuery) ([]
 	}
 	req = AddSearchQuery(req, query)
 
-	resp, err := c.LocalDevice.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
-
-	hyperMetroPairs := []HyperMetroPair{}
-	if err = decodeBody(resp, &hyperMetroPairs); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
+	var hyperMetroPairs []HyperMetroPair
+	if err = c.LocalDevice.requestWithRetry(req, &hyperMetroPairs, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	if len(hyperMetroPairs) == 0 {
-		return nil, errors.New(ErrHyperMetroPairNotFound)
+		return nil, ErrHyperMetroPairNotFound
 	}
 
 	return hyperMetroPairs, nil
@@ -103,14 +91,10 @@ func (c *Client) GetHyperMetroPair(ctx context.Context, hyperMetroPairID string)
 	if err != nil {
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := c.LocalDevice.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	hyperMetroPair := &HyperMetroPair{}
-	if err = decodeBody(resp, hyperMetroPair); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = c.LocalDevice.requestWithRetry(req, hyperMetroPair, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return hyperMetroPair, nil
@@ -137,14 +121,10 @@ func (c *Client) CreateHyperMetroPair(ctx context.Context, hyperMetroDomainID st
 	if err != nil {
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := c.LocalDevice.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	hyperMetroPair := &HyperMetroPair{}
-	if err = decodeBody(resp, hyperMetroPair); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = c.LocalDevice.requestWithRetry(req, hyperMetroPair, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return hyperMetroPair, nil
@@ -159,14 +139,10 @@ func (c *Client) DeleteHyperMetroPair(ctx context.Context, hyperMetroPairID stri
 	if err != nil {
 		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := c.LocalDevice.HTTPClient.Do(req)
-	if err != nil {
-		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, i); err != nil {
-		return fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = c.LocalDevice.requestWithRetry(req, i, false); err != nil {
+		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return nil
@@ -191,14 +167,10 @@ func (c *Client) SuspendHyperMetroPair(ctx context.Context, hyperMetroPairID str
 	if err != nil {
 		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := c.LocalDevice.HTTPClient.Do(req)
-	if err != nil {
-		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, i); err != nil {
-		return fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = c.LocalDevice.requestWithRetry(req, i, false); err != nil {
+		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return nil
@@ -223,14 +195,10 @@ func (c *Client) SyncHyperMetroPair(ctx context.Context, hyperMetroPairID string
 	if err != nil {
 		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := c.LocalDevice.HTTPClient.Do(req)
-	if err != nil {
-		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, i); err != nil {
-		return fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = c.LocalDevice.requestWithRetry(req, i, false); err != nil {
+		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return nil

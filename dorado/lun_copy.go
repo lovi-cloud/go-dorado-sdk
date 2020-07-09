@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"strconv"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 // LunCopy is copy object for lun
@@ -34,11 +32,6 @@ type LunCopy struct {
 	TYPE                  int    `json:"TYPE"`
 }
 
-// Default const
-const (
-	DefaultLUNCopyTimeoutSecond = 60
-)
-
 // GetLUNCopys get lun copy objects by query
 func (d *Device) GetLUNCopys(ctx context.Context, query *SearchQuery) ([]LunCopy, error) {
 	spath := "/luncopy"
@@ -47,21 +40,15 @@ func (d *Device) GetLUNCopys(ctx context.Context, query *SearchQuery) ([]LunCopy
 	if err != nil {
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-
 	req = AddSearchQuery(req, query)
 
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
-
-	lunCopys := []LunCopy{}
-	if err = decodeBody(resp, &lunCopys); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
+	var lunCopys []LunCopy
+	if err = d.requestWithRetry(req, &lunCopys, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	if len(lunCopys) == 0 {
-		return nil, errors.New(ErrLunNotFound)
+		return nil, ErrLunNotFound
 	}
 
 	return lunCopys, nil
@@ -75,14 +62,10 @@ func (d *Device) GetLUNCopy(ctx context.Context, lunCopyID int) (*LunCopy, error
 	if err != nil {
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	lunCopys := &LunCopy{}
-	if err = decodeBody(resp, lunCopys); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, lunCopys, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return lunCopys, nil
@@ -111,17 +94,13 @@ func (d *Device) CreateLUNCopy(ctx context.Context, sourceLUNID, targetLUNID int
 	if err != nil {
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
+
+	lunCopy := &LunCopy{}
+	if err = d.requestWithRetry(req, lunCopy, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
-	luncopy := &LunCopy{}
-	if err = decodeBody(resp, luncopy); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
-	}
-
-	return luncopy, nil
+	return lunCopy, nil
 }
 
 // DeleteLUNCopy delete lun copy object
@@ -132,14 +111,10 @@ func (d *Device) DeleteLUNCopy(ctx context.Context, luncopyID int) error {
 	if err != nil {
 		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, i); err != nil {
-		return fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, i, false); err != nil {
+		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return nil
@@ -164,14 +139,10 @@ func (d *Device) StartLUNCopy(ctx context.Context, luncopyID int) error {
 	if err != nil {
 		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, i); err != nil {
-		return fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, i, false); err != nil {
+		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return nil

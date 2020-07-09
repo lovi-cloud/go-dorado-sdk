@@ -9,8 +9,6 @@ import (
 	"time"
 
 	uuid "github.com/satori/go.uuid"
-
-	"github.com/pkg/errors"
 )
 
 // Snapshot is object of lun snapshot
@@ -52,11 +50,6 @@ type Snapshot struct {
 	SnapCgID              string `json:"snapCgId"`
 }
 
-// Error const
-const (
-	ErrSnapshotNotFound = "snapshot is not found"
-)
-
 // EncodeSnapshotName encode compatible name
 func EncodeSnapshotName(u uuid.UUID) string {
 	return EncodeLunName(u)
@@ -71,18 +64,14 @@ func (d *Device) GetSnapshots(ctx context.Context, query *SearchQuery) ([]Snapsh
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
 	req = AddSearchQuery(req, query)
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
-	snapshots := []Snapshot{}
-	if err = decodeBody(resp, &snapshots); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
+	var snapshots []Snapshot
+	if err = d.requestWithRetry(req, &snapshots, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	if len(snapshots) == 0 {
-		return nil, errors.New(ErrSnapshotNotFound)
+		return nil, ErrSnapshotNotFound
 	}
 
 	return snapshots, nil
@@ -96,14 +85,10 @@ func (d *Device) GetSnapshot(ctx context.Context, snapshotID int) (*Snapshot, er
 	if err != nil {
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	snapshots := &Snapshot{}
-	if err = decodeBody(resp, snapshots); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, snapshots, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return snapshots, nil
@@ -134,14 +119,10 @@ func (d *Device) CreateSnapshot(ctx context.Context, lunID int, name uuid.UUID, 
 	if err != nil {
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	snapshot := &Snapshot{}
-	if err = decodeBody(resp, snapshot); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, snapshot, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return snapshot, nil
@@ -208,14 +189,10 @@ func (d *Device) DeleteSnapshot(ctx context.Context, snapshotID int) error {
 	if err != nil {
 		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, i); err != nil {
-		return fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, i, false); err != nil {
+		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return nil
@@ -238,14 +215,10 @@ func (d *Device) ActivateSnapshot(ctx context.Context, snapshotID int) error {
 	if err != nil {
 		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, i); err != nil {
-		return fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, i, false); err != nil {
+		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return nil
@@ -268,14 +241,10 @@ func (d *Device) StopSnapshot(ctx context.Context, snapshotID int) error {
 	if err != nil {
 		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, i); err != nil {
-		return fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, i, false); err != nil {
+		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return nil
