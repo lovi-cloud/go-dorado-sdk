@@ -47,15 +47,13 @@ func (d *Device) requestWithRetry(req *http.Request, out interface{}, retried bo
 	}
 
 	err = decodeBody(resp, out)
-	if err != nil && retried == false {
-		if err == ErrUnAuthorized {
-			// retry after refresh token
-			err = d.setToken()
-			if err != nil {
-				return fmt.Errorf("failed to setToken: %w", err)
-			}
-			return d.requestWithRetry(req, out, true)
+	if err == ErrUnAuthorized && retried == false {
+		// retry after refresh token
+		err = d.setToken()
+		if err != nil {
+			return fmt.Errorf("failed to setToken: %w", err)
 		}
+		return d.requestWithRetry(req, out, true)
 	}
 
 	if err != nil {
