@@ -21,11 +21,6 @@ type HostGroup struct {
 	TYPE              int    `json:"TYPE"`
 }
 
-// Error const
-const (
-	ErrHostGroupNotFound = "HostGroup is not found"
-)
-
 // GetHostGroups get hostgroup objects by query.
 func (d *Device) GetHostGroups(ctx context.Context, query *SearchQuery) ([]HostGroup, error) {
 	spath := "/hostgroup"
@@ -42,7 +37,7 @@ func (d *Device) GetHostGroups(ctx context.Context, query *SearchQuery) ([]HostG
 	}
 
 	if len(hostGroups) == 0 {
-		return nil, errors.New(ErrHostGroupNotFound)
+		return nil, ErrHostGroupNotFound
 	}
 
 	return hostGroups, nil
@@ -217,7 +212,7 @@ func (d *Device) GetHostGroupForce(ctx context.Context, hostname string) (*HostG
 	// GetHostGroup and CreateHostGroup if not found.
 	hostgroups, err := d.GetHostGroups(ctx, NewSearchQueryHostname(hostname))
 	if err != nil {
-		if err.Error() == ErrHostGroupNotFound {
+		if err == ErrHostGroupNotFound {
 			return d.CreateHostGroupWithHost(ctx, hostname)
 		}
 

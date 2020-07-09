@@ -16,11 +16,6 @@ type TargetPort struct {
 	TYPE      int    `json:"TYPE"`
 }
 
-// Error const
-const (
-	ErrTargetPortNotFound = "target port is not found"
-)
-
 // GetTargetPort get target ports by query
 func (d *Device) GetTargetPort(ctx context.Context, query *SearchQuery) ([]TargetPort, error) {
 	spath := "/iscsi_tgt_port"
@@ -37,7 +32,7 @@ func (d *Device) GetTargetPort(ctx context.Context, query *SearchQuery) ([]Targe
 	}
 
 	if len(targetPorts) == 0 {
-		return nil, errors.New(ErrTargetPortNotFound)
+		return nil, ErrTargetPortNotFound
 	}
 
 	return targetPorts, nil

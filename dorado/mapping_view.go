@@ -20,11 +20,6 @@ type MappingView struct {
 	TYPE                int    `json:"TYPE"`
 }
 
-// Error const
-const (
-	ErrMappingViewNotFound = "mapping view is not found"
-)
-
 // GetMappingViews get mapping view objects by query
 func (d *Device) GetMappingViews(ctx context.Context, query *SearchQuery) ([]MappingView, error) {
 	spath := "/mappingview"
@@ -41,7 +36,7 @@ func (d *Device) GetMappingViews(ctx context.Context, query *SearchQuery) ([]Map
 	}
 
 	if len(mappingviews) == 0 {
-		return nil, errors.New(ErrMappingViewNotFound)
+		return nil, ErrMappingViewNotFound
 	}
 
 	return mappingviews, nil
@@ -154,7 +149,7 @@ func (d *Device) DisAssociateMappingView(ctx context.Context, param AssociatePar
 func (d *Device) GetMappingViewForce(ctx context.Context, hostname string) (*MappingView, error) {
 	mappingviews, err := d.GetMappingViews(ctx, NewSearchQueryHostname(hostname))
 	if err != nil {
-		if err.Error() == ErrMappingViewNotFound {
+		if err == ErrMappingViewNotFound {
 			return d.CreateMappingView(ctx, hostname)
 		}
 

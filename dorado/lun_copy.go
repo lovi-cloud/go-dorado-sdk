@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"strconv"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 // LunCopy is copy object for lun
@@ -34,11 +32,6 @@ type LunCopy struct {
 	TYPE                  int    `json:"TYPE"`
 }
 
-// Default const
-const (
-	DefaultLUNCopyTimeoutSecond = 60
-)
-
 // GetLUNCopys get lun copy objects by query
 func (d *Device) GetLUNCopys(ctx context.Context, query *SearchQuery) ([]LunCopy, error) {
 	spath := "/luncopy"
@@ -55,7 +48,7 @@ func (d *Device) GetLUNCopys(ctx context.Context, query *SearchQuery) ([]LunCopy
 	}
 
 	if len(lunCopys) == 0 {
-		return nil, errors.New(ErrLunNotFound)
+		return nil, ErrLunNotFound
 	}
 
 	return lunCopys, nil

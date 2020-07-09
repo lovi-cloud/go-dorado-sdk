@@ -3,8 +3,6 @@ package dorado
 import (
 	"context"
 	"fmt"
-
-	"github.com/pkg/errors"
 )
 
 // NOTE(whywaita): implement only GET.
@@ -90,11 +88,6 @@ type StoragePools struct {
 	TotalSizeWithoutSnap            string `json:"totalSizeWithoutSnap"`
 }
 
-// Error const
-const (
-	ErrStoragePoolNotFound = "StoragePool is not found"
-)
-
 // GetStoragePools get storage pools by query
 func (d *Device) GetStoragePools(ctx context.Context, query *SearchQuery) ([]StoragePools, error) {
 	spath := "/storagepool"
@@ -110,7 +103,7 @@ func (d *Device) GetStoragePools(ctx context.Context, query *SearchQuery) ([]Sto
 	}
 
 	if len(storagePools) == 0 {
-		return nil, errors.New(ErrStoragePoolNotFound)
+		return nil, ErrStoragePoolNotFound
 	}
 
 	return storagePools, nil

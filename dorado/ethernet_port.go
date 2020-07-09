@@ -56,11 +56,6 @@ type EthernetPort struct {
 	ZoneID             string `json:"zoneId"`
 }
 
-// Error const
-var (
-	ErrEthernetPortNotFound = "ethernet port is not found"
-)
-
 // GetAssociatedEthernetPort get ethernet port associated ASSOCIATEOBJID (maybe port group).
 // you must set ASSOCIATEOBJID and ASSOCIATEOBJTYPE. we recommend use dorado.GetPortalIPAddresses().
 func (d *Device) GetAssociatedEthernetPort(ctx context.Context, query *SearchQuery) ([]EthernetPort, error) {
@@ -82,7 +77,7 @@ func (d *Device) GetAssociatedEthernetPort(ctx context.Context, query *SearchQue
 	}
 
 	if len(etherports) == 0 {
-		return nil, errors.New(ErrEthernetPortNotFound)
+		return nil, ErrEthernetPortNotFound
 	}
 
 	return etherports, nil

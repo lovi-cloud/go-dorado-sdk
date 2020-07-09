@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-
-	"github.com/pkg/errors"
 )
 
 // PortGroup is group of Port (ex Ethernet, FiberChannel...)
@@ -15,11 +13,6 @@ type PortGroup struct {
 	NAME        string `json:"NAME"`
 	TYPE        int    `json:"TYPE"`
 }
-
-// Error const
-const (
-	ErrPortGroupNotFound = "PortGroup is not found"
-)
 
 // GetPortGroups get port groups by query
 func (d *Device) GetPortGroups(ctx context.Context, query *SearchQuery) ([]PortGroup, error) {
@@ -37,7 +30,7 @@ func (d *Device) GetPortGroups(ctx context.Context, query *SearchQuery) ([]PortG
 	}
 
 	if len(portGroups) == 0 {
-		return nil, errors.New(ErrPortGroupNotFound)
+		return nil, ErrPortGroupNotFound
 	}
 
 	return portGroups, nil

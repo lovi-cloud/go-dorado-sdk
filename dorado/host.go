@@ -8,8 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-
-	"github.com/pkg/errors"
 )
 
 // Host is object of hypervisor (a.k.a. compute node) in dorado.
@@ -31,11 +29,6 @@ type Host struct {
 	RUNNINGSTATUS   string `json:"RUNNINGSTATUS"`
 	TYPE            int    `json:"TYPE"`
 }
-
-// Error const
-const (
-	ErrHostNotFound = "host is not found"
-)
 
 func encodeHostName(hostname string) string {
 	// this function binding by huawei_utils.encode_host_name(id) in OpenStack cinder-driver.
@@ -63,7 +56,7 @@ func (d *Device) GetHosts(ctx context.Context, query *SearchQuery) ([]Host, erro
 	}
 
 	if len(hosts) == 0 {
-		return nil, errors.New(ErrHostNotFound)
+		return nil, ErrHostNotFound
 	}
 
 	return hosts, nil

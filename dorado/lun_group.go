@@ -22,11 +22,6 @@ type LunGroup struct {
 	ASSOCIATELUNIDLIST string `json:"ASSOCIATELUNIDLIST"`
 }
 
-// Error const
-const (
-	ErrLunGroupNotFound = "LUN Group is not found"
-)
-
 // GetLunGroups get lun groups by query
 func (d *Device) GetLunGroups(ctx context.Context, query *SearchQuery) ([]LunGroup, error) {
 	spath := "/lungroup"
@@ -43,7 +38,7 @@ func (d *Device) GetLunGroups(ctx context.Context, query *SearchQuery) ([]LunGro
 	}
 
 	if len(lunGroups) == 0 {
-		return nil, errors.New(ErrLunGroupNotFound)
+		return nil, ErrLunGroupNotFound
 	}
 
 	return lunGroups, nil
@@ -214,7 +209,7 @@ func (lg *LunGroup) IsAssociated() bool {
 func (d *Device) GetLunGroupForce(ctx context.Context, hostname string) (*LunGroup, error) {
 	lungroups, err := d.GetLunGroups(ctx, NewSearchQueryHostname(hostname))
 	if err != nil {
-		if err.Error() == ErrLunGroupNotFound {
+		if err == ErrLunGroupNotFound {
 			return d.CreateLunGroup(ctx, hostname)
 		}
 

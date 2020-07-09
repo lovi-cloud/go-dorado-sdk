@@ -9,8 +9,6 @@ import (
 	"time"
 
 	uuid "github.com/satori/go.uuid"
-
-	"github.com/pkg/errors"
 )
 
 // Snapshot is object of lun snapshot
@@ -52,11 +50,6 @@ type Snapshot struct {
 	SnapCgID              string `json:"snapCgId"`
 }
 
-// Error const
-const (
-	ErrSnapshotNotFound = "snapshot is not found"
-)
-
 // EncodeSnapshotName encode compatible name
 func EncodeSnapshotName(u uuid.UUID) string {
 	return EncodeLunName(u)
@@ -78,7 +71,7 @@ func (d *Device) GetSnapshots(ctx context.Context, query *SearchQuery) ([]Snapsh
 	}
 
 	if len(snapshots) == 0 {
-		return nil, errors.New(ErrSnapshotNotFound)
+		return nil, ErrSnapshotNotFound
 	}
 
 	return snapshots, nil

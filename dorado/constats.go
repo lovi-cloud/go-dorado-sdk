@@ -1,6 +1,7 @@
 package dorado
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 )
@@ -53,6 +54,28 @@ const (
 // Error codes
 const (
 	ErrorCodeUnAuthorized = -401
+)
+
+// Error Values
+var (
+	ErrEthernetPortNotFound     = errors.New("ethernet port is not found")
+	ErrHostNotFound             = errors.New("host is not found")
+	ErrHostGroupNotFound        = errors.New("host group is not found")
+	ErrHyperMetroDomainNotFound = errors.New("HyperMetroDomain ID is not found")
+	ErrHyperMetroPairNotFound   = errors.New("HyperMetroPair is not found")
+	ErrInitiatorNotFound        = errors.New("initiator is not found")
+	ErrLunNotFound              = errors.New("LUN is not found")
+	ErrLunGroupNotFound         = errors.New("LUN Group is not found")
+	ErrMappingViewNotFound      = errors.New("mapping view is not found")
+	ErrPortGroupNotFound        = errors.New("port group is not found")
+	ErrSnapshotNotFound         = errors.New("snapshot is not found")
+	ErrStoragePoolNotFound      = errors.New("storage pool is not found")
+	ErrTargetPortNotFound       = errors.New("target port is not found")
+)
+
+// Default values
+const (
+	DefaultLUNCopyTimeoutSecond = 60
 )
 
 // AssociateParam is parameter of associate functions

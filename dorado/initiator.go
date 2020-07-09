@@ -29,11 +29,6 @@ type Initiator struct {
 	PARENTTYPE      int    `json:"PARENTTYPE,omitempty"`
 }
 
-// Error const
-const (
-	ErrInitiatorNotFound = "Initiator is not found"
-)
-
 func encodeIqn(iqn string) string {
 	// must escape colon when using filter string.
 	return strings.ReplaceAll(iqn, `:`, `\:`)
@@ -57,7 +52,7 @@ func (d *Device) GetInitiators(ctx context.Context, query *SearchQuery) ([]Initi
 	}
 
 	if len(initiators) == 0 {
-		return nil, errors.New(ErrInitiatorNotFound)
+		return nil, ErrInitiatorNotFound
 	}
 
 	return initiators, nil
@@ -162,7 +157,7 @@ func (d *Device) UpdateInitiator(ctx context.Context, iqn string, initiatorParam
 func (d *Device) GetInitiatorForce(ctx context.Context, iqn string) (*Initiator, error) {
 	initiators, err := d.GetInitiators(ctx, NewSearchQueryID(encodeIqn(iqn)))
 	if err != nil {
-		if err.Error() == ErrInitiatorNotFound {
+		if err == ErrInitiatorNotFound {
 			return d.CreateInitiator(ctx, iqn)
 		}
 

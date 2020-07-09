@@ -6,8 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-
-	"github.com/pkg/errors"
 )
 
 // HyperMetroPairParam is parameter of CreateHyperMetroPair
@@ -58,11 +56,6 @@ type HyperMetroPair struct {
 	WRITESECONDARYTIMEOUT    string `json:"WRITESECONDARYTIMEOUT"`
 }
 
-// Error const
-const (
-	ErrHyperMetroPairNotFound = "HyperMetroPair is not found"
-)
-
 // GetHyperMetroPairs get HyperMetro objects by query
 func (c *Client) GetHyperMetroPairs(ctx context.Context, query *SearchQuery) ([]HyperMetroPair, error) {
 	spath := "/HyperMetroPair"
@@ -84,7 +77,7 @@ func (c *Client) GetHyperMetroPairs(ctx context.Context, query *SearchQuery) ([]
 	}
 
 	if len(hyperMetroPairs) == 0 {
-		return nil, errors.New(ErrHyperMetroPairNotFound)
+		return nil, ErrHyperMetroPairNotFound
 	}
 
 	return hyperMetroPairs, nil

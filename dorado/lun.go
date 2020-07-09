@@ -81,8 +81,8 @@ type LUN struct {
 	TakeOverLunWwn              string `json:"takeOverLunWwn"`
 }
 
-// ASSOCIATEMETADATA is one of LUN parameter
-type ASSOCIATEMETADATA struct {
+// AssociateMetaData is one of LUN parameter
+type AssociateMetaData struct {
 	HostLUNID int `json:"HostLUNID"`
 }
 
@@ -100,11 +100,6 @@ type ParamCreateLUN struct {
 	WORKLOADTYPEID     string `json:"WORKLOADTYPEID"`
 	PREFETCHPOLICY     string `json:"PREFETCHPOLICY"`
 }
-
-// Error const
-const (
-	ErrLunNotFound = "LUN is not found"
-)
 
 // PrefixVolumeDescription is prefix of volume Description
 var PrefixVolumeDescription = "volume-"
@@ -137,7 +132,7 @@ func (d *Device) GetLUNs(ctx context.Context, query *SearchQuery) ([]LUN, error)
 	}
 
 	if len(luns) == 0 {
-		return nil, errors.New(ErrLunNotFound)
+		return nil, ErrLunNotFound
 	}
 
 	return luns, nil
@@ -304,7 +299,7 @@ func (d *Device) GetAssociateLUNs(ctx context.Context, query *SearchQuery) ([]LU
 	}
 
 	if len(luns) == 0 {
-		return nil, errors.New(ErrLunNotFound)
+		return nil, ErrLunNotFound
 	}
 
 	return luns, nil
@@ -325,7 +320,7 @@ func (d *Device) GetHostLUNID(ctx context.Context, lunID, hostID int) (int, erro
 	for _, lun := range luns {
 		if lun.ID == lunID {
 			jsonStr := lun.ASSOCIATEMETADATA
-			hostLunID := ASSOCIATEMETADATA{}
+			hostLunID := AssociateMetaData{}
 			err := json.Unmarshal([]byte(jsonStr), &hostLunID)
 			if err != nil {
 				return 0, fmt.Errorf("failed to parse ASSOCIATEMETADATA: %w", err)

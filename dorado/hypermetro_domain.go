@@ -3,8 +3,6 @@ package dorado
 import (
 	"context"
 	"fmt"
-
-	"github.com/pkg/errors"
 )
 
 // NOTE(whywaita): implement only GET.
@@ -25,11 +23,6 @@ type HyperMetroDomain struct {
 	STANDBYCPSNAME string `json:"STANDBYCPSNAME"`
 	TYPE           int    `json:"TYPE"`
 }
-
-// Error const
-const (
-	ErrHyperMetroDomainNotFound = "HyperMetroDomain ID is not found"
-)
 
 // GetHyperMetroDomains get HyperMetroDomain objects.
 func (c *Client) GetHyperMetroDomains(ctx context.Context, query *SearchQuery) ([]HyperMetroDomain, error) {
@@ -53,7 +46,7 @@ func (d *Device) GetHyperMetroDomains(ctx context.Context, query *SearchQuery) (
 	}
 
 	if len(hyperMetroDomains) == 0 {
-		return nil, errors.New(ErrHyperMetroDomainNotFound)
+		return nil, ErrHyperMetroDomainNotFound
 	}
 
 	return hyperMetroDomains, nil
