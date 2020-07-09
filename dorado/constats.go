@@ -50,6 +50,11 @@ const (
 	StatusSnapshotInactive = 45
 )
 
+// Error codes
+const (
+	ErrorCodeUnAuthorized = -401
+)
+
 // AssociateParam is parameter of associate functions
 type AssociateParam struct {
 	ID               string `json:"ID,omitempty"`

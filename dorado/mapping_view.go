@@ -35,14 +35,9 @@ func (d *Device) GetMappingViews(ctx context.Context, query *SearchQuery) ([]Map
 	}
 	req = AddSearchQuery(req, query)
 
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
-
 	mappingviews := []MappingView{}
-	if err = decodeBody(resp, &mappingviews); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, &mappingviews, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	if len(mappingviews) == 0 {
@@ -60,14 +55,10 @@ func (d *Device) GetMappingView(ctx context.Context, mappingviewID int) (*Mappin
 	if err != nil {
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	mappingview := &MappingView{}
-	if err = decodeBody(resp, mappingview); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, mappingview, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return mappingview, nil
@@ -92,14 +83,10 @@ func (d *Device) CreateMappingView(ctx context.Context, hostname string) (*Mappi
 	if err != nil {
 		return nil, fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	mappingview := &MappingView{}
-	if err = decodeBody(resp, mappingview); err != nil {
-		return nil, fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, mappingview, false); err != nil {
+		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return mappingview, nil
@@ -113,14 +100,10 @@ func (d *Device) DeleteMappingView(ctx context.Context, mappingviewID int) error
 	if err != nil {
 		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, i); err != nil {
-		return fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, i, false); err != nil {
+		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return nil
@@ -138,14 +121,10 @@ func (d *Device) AssociateMappingView(ctx context.Context, param AssociateParam)
 	if err != nil {
 		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, i); err != nil {
-		return fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, i, false); err != nil {
+		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
 	return nil
@@ -163,16 +142,11 @@ func (d *Device) DisAssociateMappingView(ctx context.Context, param AssociatePar
 	if err != nil {
 		return fmt.Errorf(ErrCreateRequest+": %w", err)
 	}
-	resp, err := d.HTTPClient.Do(req)
-	if err != nil {
-		return fmt.Errorf(ErrHTTPRequestDo+": %w", err)
-	}
 
 	var i interface{} // this endpoint return N/A
-	if err = decodeBody(resp, i); err != nil {
-		return fmt.Errorf(ErrDecodeBody+": %w", err)
+	if err = d.requestWithRetry(req, i, false); err != nil {
+		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
-
 	return nil
 }
 

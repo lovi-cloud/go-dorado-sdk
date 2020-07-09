@@ -9,7 +9,6 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"net"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -30,12 +29,13 @@ type Client struct {
 
 // Device is device of dorado
 type Device struct {
-	IPAddresses []*net.TCPAddr
+	Controllers []*url.URL
 	URL         *url.URL
 	HTTPClient  *http.Client
 	DeviceID    string
 	Token       string
 	Jar         *cookiejar.Jar
+	Logger      *log.Logger
 
 	Username string
 	Password string
@@ -88,7 +88,7 @@ func NewClientDefaultToken(localIPs, remoteIPs []string, username, password, por
 	if len(password) == 0 {
 		return nil, errors.New("password is required")
 	}
-	if len(localIPs) == 0 || len(remoteIPs) == 1 {
+	if len(localIPs) == 0 || len(remoteIPs) == 0 {
 		return nil, errors.New("IPs is required")
 	}
 
@@ -104,12 +104,12 @@ func NewClientDefaultToken(localIPs, remoteIPs []string, username, password, por
 	transport.TLSClientConfig = &tlsConfig
 	httpClient := &http.Client{Transport: &transport}
 
-	localDevice, err := newDevice(localIPs, username, password, httpClient)
+	localDevice, err := newDevice(localIPs, username, password, httpClient, logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Local Device: %w", err)
 	}
 
-	remoteDevice, err := newDevice(remoteIPs, username, password, httpClient)
+	remoteDevice, err := newDevice(remoteIPs, username, password, httpClient, logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Remote Device: %w", err)
 	}
@@ -124,15 +124,15 @@ func NewClientDefaultToken(localIPs, remoteIPs []string, username, password, por
 	return c, nil
 }
 
-func newDevice(ips []string, username, password string, httpClient *http.Client) (*Device, error) {
-	var parsedIPs []*net.TCPAddr
+func newDevice(ips []string, username, password string, httpClient *http.Client, logger *log.Logger) (*Device, error) {
+	var parsedURLs []*url.URL
 	for _, ipStr := range ips {
-		parsed, err := net.ResolveTCPAddr("tcp", ipStr)
+		parsed, err := url.Parse(ipStr)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse input ipstr: %w", err)
+			return nil, fmt.Errorf("failed to parse input urls: %w", err)
 		}
 
-		parsedIPs = append(parsedIPs, parsed)
+		parsedURLs = append(parsedURLs, parsed)
 	}
 
 	jar, err := cookiejar.New(nil)
@@ -141,11 +141,12 @@ func newDevice(ips []string, username, password string, httpClient *http.Client)
 	}
 
 	d := &Device{
-		IPAddresses: parsedIPs,
+		Controllers: parsedURLs,
 		HTTPClient:  httpClient,
 		Username:    username,
 		Password:    password,
 		Jar:         jar,
+		Logger:      logger,
 	}
 
 	return d, nil
@@ -166,11 +167,11 @@ func (d *Device) setBaseURL(baseHost, token string) error {
 func (c *Client) SetToken() error {
 	var err error
 
-	err = c.LocalDevice.setToken(c.Logger)
+	err = c.LocalDevice.setToken()
 	if err != nil {
 		return fmt.Errorf("failed to set token in local device: %w", err)
 	}
-	err = c.RemoteDevice.setToken(c.Logger)
+	err = c.RemoteDevice.setToken()
 	if err != nil {
 		return fmt.Errorf("failed to set token in remote device: %w", err)
 	}
@@ -178,31 +179,31 @@ func (c *Client) SetToken() error {
 	return nil
 }
 
-func (d *Device) setToken(logger *log.Logger) error {
-	for _, ip := range d.IPAddresses {
-		err := d.setBaseURL("https://"+ip.String(), DefaultDeviceID)
+func (d *Device) setToken() error {
+	for _, url := range d.Controllers {
+		err := d.setBaseURL(url.String(), DefaultDeviceID)
 		if err != nil {
 			return fmt.Errorf("failed to set BaseURL: %w", err)
 		}
 
 		token, deviceID, err := d.getToken()
 		if err != nil {
-			logger.Printf("cannot get token, continue next IP Address (IP: %s): %s", ip.String(), err)
+			d.Logger.Printf("cannot get token, continue next controller (URL: %s): %s", url.String(), err)
 			continue
 		}
 		d.DeviceID = deviceID
 		d.Token = token
 
-		err = d.setBaseURL("https://"+ip.String(), deviceID)
+		err = d.setBaseURL(url.String(), deviceID)
 		if err != nil {
 			return fmt.Errorf("failed to set BaseURL: %w", err)
 		}
 
-		logger.Printf("successlay setToken! (IP: %s)", ip.String())
+		d.Logger.Printf("successlay setToken! (URL: %s)", url.String())
 		return nil
 	}
 
-	return errors.New("cannot setToken in all IP addresses")
+	return errors.New("cannot setToken in all controllers")
 }
 
 func (d *Device) newRequest(ctx context.Context, method, spath string, body io.Reader) (*http.Request, error) {

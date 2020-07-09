@@ -4,13 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"testing"
 )
 
-func TestDecodeBodyInterface(t *testing.T) {
+func TestDecodeBody_Interface(t *testing.T) {
 	input := `
 {
   "data": [],
@@ -33,13 +32,12 @@ func TestDecodeBodyInterface(t *testing.T) {
 		t.Errorf("decodeBody return error is nil, want to return error response")
 	}
 
-	fmt.Println(err)
 	if err.Error() != want.Error().Error() {
 		t.Errorf("decodeBody return %+v, want %+v", err, want)
 	}
 }
 
-func TestDecodeBodyErrorInvalidParameter(t *testing.T) {
+func TestDecodeBody_ErrorInvalidParameter(t *testing.T) {
 	input := `{
   "data": {},
   "error": {
@@ -66,7 +64,7 @@ func TestDecodeBodyErrorInvalidParameter(t *testing.T) {
 	}
 }
 
-func TestDecodeBodySlice(t *testing.T) {
+func TestDecodeBody_Slice(t *testing.T) {
 	input := `
 {
   "data": [],
@@ -94,7 +92,7 @@ func TestDecodeBodySlice(t *testing.T) {
 	}
 }
 
-func TestDecodeBodySliceBadInput(t *testing.T) {
+func TestDecodeBody_SliceBadInput(t *testing.T) {
 	input := `
 {
   "data": {},
