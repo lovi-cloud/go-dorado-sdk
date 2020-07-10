@@ -53,6 +53,7 @@ func (d *Device) requestWithRetry(req *http.Request, out interface{}, retried bo
 		if err != nil {
 			return fmt.Errorf("failed to setToken: %w", err)
 		}
+		req.Header.Set("iBaseToken", d.Token)
 		return d.requestWithRetry(req, out, true)
 	}
 
