@@ -3,20 +3,26 @@ package dorado
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
 )
 
-func decodeBody(resp *http.Response, out interface{}) error {
+func decodeBody(resp *http.Response, out interface{}, logger *log.Logger) error {
 	defer resp.Body.Close()
-	decoder := json.NewDecoder(resp.Body)
+	jb, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read response body: %w", err)
+	}
 
 	r := &Result{
 		Data: out,
 	}
-	err := decoder.Decode(r)
-	if err != nil {
-		return fmt.Errorf("failed to create json decoder: %w", err)
+	if err := json.Unmarshal(jb, r); err != nil {
+		logger.Printf("Dorado response: %v", string(jb))
+		return fmt.Errorf("failed to unmarshal response JSON: %w", err)
 	}
+
 	if r.Error.Error() != nil {
 		return r.Error.Error()
 	}
@@ -46,7 +52,7 @@ func (d *Device) requestWithRetry(req *http.Request, out interface{}, retried bo
 		return fmt.Errorf("failed to request: %w", err)
 	}
 
-	err = decodeBody(resp, out)
+	err = decodeBody(resp, out, d.Logger)
 	if err == ErrUnAuthorized && retried == false {
 		// retry after refresh token
 		err = d.setToken()
