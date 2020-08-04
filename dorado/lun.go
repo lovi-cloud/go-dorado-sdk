@@ -305,14 +305,19 @@ func (d *Device) GetAssociateLUNs(ctx context.Context, query *SearchQuery) ([]LU
 	return luns, nil
 }
 
-// GetHostLUNID get LUN ID per host.
-func (d *Device) GetHostLUNID(ctx context.Context, lunID, hostID int) (int, error) {
+// GetAssociatedLUNs get LUNs associated specific host
+func (d *Device) GetHostAssociatedLUNs(ctx context.Context, hostID int) ([]LUN, error) {
 	query := &SearchQuery{
 		AssociateObjType: strconv.Itoa(TypeHost),
 		AssociateObjID:   strconv.Itoa(hostID),
 	}
 
-	luns, err := d.GetAssociateLUNs(ctx, query)
+	return d.GetAssociateLUNs(ctx, query)
+}
+
+// GetHostLUNID get LUN ID per host.
+func (d *Device) GetHostLUNID(ctx context.Context, lunID, hostID int) (int, error) {
+	luns, err := d.GetHostAssociatedLUNs(ctx, hostID)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get associated LUNs: %w", err)
 	}
