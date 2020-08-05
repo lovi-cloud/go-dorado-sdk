@@ -5,8 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"os"
 	"testing"
+)
+
+var (
+	testLogger = log.New(os.Stdout, "[go-dorado-sdk testing]", log.LstdFlags)
 )
 
 func TestDecodeBody_Interface(t *testing.T) {
@@ -27,7 +33,7 @@ func TestDecodeBody_Interface(t *testing.T) {
 	}
 
 	var i interface{}
-	err := decodeBody(resp, i)
+	err := decodeBody(resp, i, testLogger)
 	if err == nil {
 		t.Errorf("decodeBody return error is nil, want to return error response")
 	}
@@ -54,7 +60,7 @@ func TestDecodeBody_ErrorInvalidParameter(t *testing.T) {
 	}
 
 	hyperMetroPair := &HyperMetroPair{}
-	err := decodeBody(resp, &hyperMetroPair)
+	err := decodeBody(resp, &hyperMetroPair, testLogger)
 	if err == nil {
 		t.Errorf("decodeBody return error is nil, want to return error response")
 	}
@@ -82,7 +88,7 @@ func TestDecodeBody_Slice(t *testing.T) {
 	}
 
 	hyperMetroPairs := []HyperMetroPair{}
-	err := decodeBody(resp, &hyperMetroPairs)
+	err := decodeBody(resp, &hyperMetroPairs, testLogger)
 	if err == nil {
 		t.Errorf("decodeBody return error is nil, want to return error response")
 	}
@@ -105,7 +111,7 @@ func TestDecodeBody_SliceBadInput(t *testing.T) {
 	resp := &http.Response{Body: ioutil.NopCloser(bytes.NewBufferString(input))}
 
 	hyperMetroPairs := []HyperMetroPair{} // input "data" is {} (not slice), but catch slice
-	err := decodeBody(resp, &hyperMetroPairs)
+	err := decodeBody(resp, &hyperMetroPairs, testLogger)
 	if err == nil {
 		t.Errorf("decodeBody return error is nil, want to return error response")
 	}

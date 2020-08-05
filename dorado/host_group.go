@@ -112,7 +112,7 @@ func (d *Device) AssociateHost(ctx context.Context, hostgroupID, hostID int) err
 		ASSOCIATEOBJID:   strconv.Itoa(hostID),
 		ASSOCIATEOBJTYPE: TypeHost,
 	}
-	fmt.Printf("%+v\n", param)
+
 	jb, err := json.Marshal(param)
 	if err != nil {
 		return fmt.Errorf(ErrCreatePostValue+": %w", err)

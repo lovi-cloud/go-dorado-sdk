@@ -39,7 +39,7 @@ func (d *Device) getToken() (string, string, error) {
 	defer resp.Body.Close()
 
 	body := &Session{}
-	err = decodeBody(resp, body)
+	err = decodeBody(resp, body, d.Logger)
 	if err != nil {
 		return "", "", fmt.Errorf(ErrDecodeBody+": %w", err)
 	}
