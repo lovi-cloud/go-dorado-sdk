@@ -22,12 +22,45 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = volumeOperation(client, ctx)
-	if err != nil {
+	if err := truncateAttachedDevice(client, ctx); err != nil {
 		log.Fatal(err)
 	}
 
 	fmt.Println("operation is done!")
+}
+
+func truncateAttachedDevice(client *dorado.Client, ctx context.Context) error {
+	// local
+	_, host, err := client.LocalDevice.GetHostGroupForce(ctx, "hv001")
+	if err != nil {
+		return err
+	}
+
+	luns, err := client.LocalDevice.GetHostAssociatedLUNs(ctx, host.ID)
+	fmt.Printf("Associated Number is %d\n", len(luns))
+
+	hmps, err := client.GetHyperMetroPairs(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	var associated []dorado.HyperMetroPair
+	for _, hmp := range hmps {
+		for _, lun := range luns {
+			if hmp.LOCALOBJID == lun.ID {
+				associated = append(associated, hmp)
+			}
+		}
+	}
+
+	for _, hmp := range associated {
+		fmt.Printf("deleted: %s\n", hmp.ID)
+		if err := client.DeleteVolume(ctx, hmp.ID); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func getInitiators(client *dorado.Client, ctx context.Context) error {
@@ -51,7 +84,7 @@ func attachVolume(client *dorado.Client, ctx context.Context) error {
 	}
 
 	fmt.Println("create volume")
-	volume, err := client.CreateVolume(ctx, u, 21, lib.StoragePoolName, hgs[0].ID)
+	volume, err := client.CreateVolumeRaw(ctx, u, 21, lib.StoragePoolName, hgs[0].ID)
 	if err != nil {
 		return err
 	}
@@ -77,7 +110,7 @@ func volumeOperation(client *dorado.Client, ctx context.Context) error {
 	}
 
 	fmt.Println("create volume")
-	volume, err := client.CreateVolume(ctx, u, 21, lib.StoragePoolName, hgs[0].ID)
+	volume, err := client.CreateVolumeRaw(ctx, u, 21, lib.StoragePoolName, hgs[0].ID)
 	if err != nil {
 		return err
 	}
@@ -107,7 +140,7 @@ func singleLunOperation(client *dorado.Client, ctx context.Context) error {
 		return err
 	}
 
-	hmp, err := client.CreateVolume(ctx, u, 21, lib.StoragePoolName, hgs[0].ID)
+	hmp, err := client.CreateVolumeRaw(ctx, u, 21, lib.StoragePoolName, hgs[0].ID)
 	if err != nil {
 		return err
 	}
@@ -120,7 +153,7 @@ func singleLunOperation(client *dorado.Client, ctx context.Context) error {
 		return err
 	}
 
-	hmps, err := client.GetHyperMetroPairs(ctx, dorado.NewSearchQueryId(hmp.ID))
+	hmps, err := client.GetHyperMetroPairs(ctx, dorado.NewSearchQueryID(hmp.ID))
 	if err != nil {
 		return err
 	}
