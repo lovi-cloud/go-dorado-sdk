@@ -305,7 +305,7 @@ func (d *Device) GetAssociateLUNs(ctx context.Context, query *SearchQuery) ([]LU
 	return luns, nil
 }
 
-// GetAssociatedLUNs get LUNs associated specific host
+// GetHostAssociatedLUNs get LUNs associated specific host
 func (d *Device) GetHostAssociatedLUNs(ctx context.Context, hostID int) ([]LUN, error) {
 	query := &SearchQuery{
 		AssociateObjType: strconv.Itoa(TypeHost),
