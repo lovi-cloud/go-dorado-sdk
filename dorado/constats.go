@@ -84,7 +84,7 @@ var (
 
 // Default values
 const (
-	DefaultLUNCopyTimeoutSecond = 60
+	DefaultLUNCopyTimeoutSecond = 180
 	DefaultDeviceID             = "xx"
 )
 

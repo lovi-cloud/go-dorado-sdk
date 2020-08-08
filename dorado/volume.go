@@ -66,11 +66,15 @@ func (d *Device) CreateLUNFromSource(ctx context.Context, sourceLUNID int, name 
 		return nil, fmt.Errorf("failed to create snapshot: %w", err)
 	}
 	defer func() {
-		d.StopSnapshot(ctx, snapshot.ID)
-		d.DeleteSnapshot(ctx, snapshot.ID)
+		if err := d.StopSnapshot(ctx, snapshot.ID); err != nil {
+			d.Logger.Printf("failed to stop snapshot: %v\n", err)
+		}
+
+		if err := d.DeleteSnapshot(ctx, snapshot.ID); err != nil {
+			d.Logger.Printf("failed to delete snapshot: %v\n", err)
+		}
 	}()
-	err = d.ActivateSnapshot(ctx, snapshot.ID)
-	if err != nil {
+	if err := d.ActivateSnapshot(ctx, snapshot.ID); err != nil {
 		return nil, fmt.Errorf("failed to activate snapshot: %w", err)
 	}
 
@@ -81,13 +85,15 @@ func (d *Device) CreateLUNFromSource(ctx context.Context, sourceLUNID int, name 
 
 	luncopy, err := d.CreateLUNCopy(ctx, snapshot.ID, targetLUN.ID)
 	if err != nil {
-		d.DeleteLUN(ctx, targetLUN.ID)
 		return nil, fmt.Errorf("failed to create luncopy object: %w", err)
 	}
-	defer d.DeleteLUNCopy(ctx, luncopy.ID)
+	defer func() {
+		if err := d.DeleteLUNCopy(ctx, luncopy.ID); err != nil {
+			d.Logger.Printf("failed to delete lun copy: %v\n", err)
+		}
+	}()
 
-	err = d.StartLUNCopyWithWait(ctx, luncopy.ID, 0)
-	if err != nil {
+	if err := d.StartLUNCopyWithWait(ctx, luncopy.ID, 0); err != nil {
 		return nil, fmt.Errorf("failed to copy lun: %w", err)
 	}
 
