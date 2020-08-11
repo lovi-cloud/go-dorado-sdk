@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"net/http"
 
 	"github.com/pkg/errors"
 )
@@ -15,7 +14,7 @@ type Session struct {
 	DeviceID   string `json:"deviceid"`
 }
 
-func (d *Device) getToken() (string, string, *http.CookieJar, error) {
+func (d *Device) getToken() (string, string, error) {
 	spath := "/sessions"
 
 	param := struct {
@@ -29,23 +28,23 @@ func (d *Device) getToken() (string, string, *http.CookieJar, error) {
 	}
 	jb, err := json.Marshal(param)
 	if err != nil {
-		return "", "", nil, fmt.Errorf("failed to json.Marshal: %w", err)
+		return "", "", fmt.Errorf("failed to json.Marshal: %w", err)
 	}
 	urlStr := d.URL.String()
 	d.HTTPClient.Jar = d.Jar
 	resp, err := d.HTTPClient.Post(urlStr+spath, "application/json", bytes.NewBuffer(jb))
 	if err != nil {
-		return "", "", nil, fmt.Errorf("failed to get token request: %w", err)
+		return "", "", fmt.Errorf("failed to get token request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	body := &Session{}
 	err = decodeBody(resp, body, d.Logger)
 	if err != nil {
-		return "", "", nil, fmt.Errorf(ErrDecodeBody+": %w", err)
+		return "", "", fmt.Errorf(ErrDecodeBody+" (sessions): %w", err)
 	}
 
-	return body.IBaseToken, body.DeviceID, &d.HTTPClient.Jar, nil
+	return body.IBaseToken, body.DeviceID, nil
 }
 
 // SetToken set iBaseToken from REST API.
@@ -71,14 +70,14 @@ func (d *Device) setToken() error {
 			return fmt.Errorf("failed to set BaseURL: %w", err)
 		}
 
-		token, deviceID, jar, err := d.getToken()
+		token, deviceID, err := d.getToken()
 		if err != nil {
 			d.Logger.Printf("cannot get token, continue next controller (URL: %s): %s", url.String(), err)
 			continue
 		}
+
 		d.DeviceID = deviceID
 		d.Token = token
-		d.HTTPClient.Jar = *jar
 
 		err = d.setBaseURL(url.String(), deviceID)
 		if err != nil {
