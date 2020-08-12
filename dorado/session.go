@@ -41,7 +41,7 @@ func (d *Device) getToken() (string, string, error) {
 	body := &Session{}
 	err = decodeBody(resp, body, d.Logger)
 	if err != nil {
-		return "", "", fmt.Errorf(ErrDecodeBody+": %w", err)
+		return "", "", fmt.Errorf(ErrDecodeBody+" (sessions): %w", err)
 	}
 
 	return body.IBaseToken, body.DeviceID, nil
@@ -75,6 +75,7 @@ func (d *Device) setToken() error {
 			d.Logger.Printf("cannot get token, continue next controller (URL: %s): %s", url.String(), err)
 			continue
 		}
+
 		d.DeviceID = deviceID
 		d.Token = token
 

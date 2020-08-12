@@ -1,11 +1,13 @@
 package dorado
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 )
 
 func decodeBody(resp *http.Response, out interface{}, logger *log.Logger) error {
@@ -55,13 +57,32 @@ func (d *Device) requestWithRetry(req *http.Request, out interface{}, retried bo
 	err = decodeBody(resp, out, d.Logger)
 	if err == ErrUnAuthorized && retried == false {
 		// retry after refresh token
+		// need update iBaseToken and ismsession in Cookie
 		err = d.setToken()
 		if err != nil {
 			return fmt.Errorf("failed to setToken: %w", err)
 		}
-		req.Header.Set("iBaseToken", d.Token)
-		d.HTTPClient.Jar = d.Jar
-		return d.requestWithRetry(req, out, true)
+
+		spath := strings.TrimPrefix(req.URL.Path, d.URL.Path)
+		var jb []byte
+		if req.GetBody != nil {
+			b, err := req.GetBody()
+			if err != nil {
+				return fmt.Errorf("failed to GetBody: %w", err)
+			}
+
+			jb, err = ioutil.ReadAll(b) // NOTE(whywaita): need to fix many memory allocation if occurred problem
+			if err != nil {
+				return fmt.Errorf("failed to ReadAll: %w", err)
+			}
+		}
+
+		newReq, err := d.newRequest(req.Context(), req.Method, spath, bytes.NewBuffer(jb))
+		if err != nil {
+			return fmt.Errorf("failed to create new http request: %w", err)
+		}
+
+		return d.requestWithRetry(newReq, out, true)
 	}
 
 	if err != nil {
