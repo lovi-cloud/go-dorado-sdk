@@ -90,7 +90,7 @@ func TestDevice_UnAuthorizedRetry(t *testing.T) {
 			`{
   "data": {
     "iBaseToken": "dummy_token",
-    "deviceid": "dummy_device_id"
+    "deviceid": "xx"
   },
   "error": {
     "code": 0,
