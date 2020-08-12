@@ -71,7 +71,7 @@ func (d *Device) requestWithRetry(req *http.Request, out interface{}, retried bo
 				return fmt.Errorf("failed to GetBody: %w", err)
 			}
 
-			jb, err = ioutil.ReadAll(b)
+			jb, err = ioutil.ReadAll(b) // NOTE(whywaita): need to fix many memory allocation if occurred problem
 			if err != nil {
 				return fmt.Errorf("failed to ReadAll: %w", err)
 			}
