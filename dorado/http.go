@@ -93,6 +93,8 @@ func (d *Device) requestWithRetry(req *http.Request, out interface{}, retried bo
 }
 
 func (d *Device) request(req *http.Request) (*http.Response, error) {
+	d.Logger.Printf("Do Request %+v\n", req)
+
 	resp, err := d.HTTPClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf(ErrHTTPRequestDo+": %w", err)
