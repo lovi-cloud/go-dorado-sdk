@@ -26,6 +26,7 @@ func decodeBody(resp *http.Response, out interface{}, logger *log.Logger) error 
 	}
 
 	if r.Error.Error() != nil {
+		logger.Printf("Dorado return error: %v", r.Error.Error())
 		return r.Error.Error()
 	}
 
