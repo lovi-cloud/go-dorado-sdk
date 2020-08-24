@@ -53,7 +53,8 @@ const (
 
 // Dorado return Error Codes
 const (
-	ErrorCodeUnAuthorized = -401
+	ErrorCodeUnAuthorized  = -401
+	ErrorCodeUserIsOffline = 1077949069
 )
 
 // Error Values

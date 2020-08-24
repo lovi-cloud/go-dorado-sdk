@@ -39,7 +39,7 @@ func (e ErrorResp) Error() error {
 	case 0:
 		// no error
 		return nil
-	case ErrorCodeUnAuthorized:
+	case ErrorCodeUnAuthorized, ErrorCodeUserIsOffline:
 		// please retry
 		return ErrUnAuthorized
 	}
