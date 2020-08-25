@@ -11,6 +11,7 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	"path"
+	"sync"
 
 	"github.com/pkg/errors"
 )
@@ -54,6 +55,11 @@ type ErrorResp struct {
 
 var (
 	userAgent = fmt.Sprintf("DoradoGoClient")
+)
+
+// httpMu lock to create *http.Request while to call setToken
+var (
+	httpMu sync.RWMutex
 )
 
 // NewClient create go-dorado-sdk client and set iBaseToken create by REST API.
@@ -157,8 +163,10 @@ func (d *Device) setBaseURL(baseHost, token string) error {
 }
 
 func (d *Device) newRequest(ctx context.Context, method, spath string, body io.Reader) (*http.Request, error) {
+	httpMu.RLock()
 	u := *d.URL
 	u.Path = path.Join(d.URL.Path, spath)
+	httpMu.RUnlock()
 
 	req, err := http.NewRequestWithContext(ctx, method, u.String(), body)
 	if err != nil {

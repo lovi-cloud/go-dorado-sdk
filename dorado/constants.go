@@ -53,7 +53,8 @@ const (
 
 // Dorado return Error Codes
 const (
-	ErrorCodeUnAuthorized = -401
+	ErrorCodeUnAuthorized  = -401
+	ErrorCodeUserIsOffline = 1077949069
 )
 
 // Error Values
@@ -66,6 +67,7 @@ var (
 	ErrInitiatorNotFound        = errors.New("initiator is not found")
 	ErrLunNotFound              = errors.New("LUN is not found")
 	ErrLunGroupNotFound         = errors.New("LUN Group is not found")
+	ErrLunCopyNotFound          = errors.New("LUN Copy is not found")
 	ErrMappingViewNotFound      = errors.New("mapping view is not found")
 	ErrPortGroupNotFound        = errors.New("port group is not found")
 	ErrSnapshotNotFound         = errors.New("snapshot is not found")
@@ -73,6 +75,7 @@ var (
 	ErrTargetPortNotFound       = errors.New("target port is not found")
 
 	ErrUnAuthorized = errors.New("failed to authorized token")
+	ErrTimeoutWait  = errors.New("timeout to wait")
 
 	// parent Error
 	ErrCreateRequest    = "failed to create request"
@@ -84,8 +87,8 @@ var (
 
 // Default values
 const (
-	DefaultLUNCopyTimeoutSecond = 180
-	DefaultDeviceID             = "xx"
+	DefaultCopyTimeoutSecond = 180
+	DefaultDeviceID          = "xx"
 )
 
 // AssociateParam is parameter of associate functions

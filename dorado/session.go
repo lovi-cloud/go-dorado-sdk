@@ -64,6 +64,9 @@ func (c *Client) SetToken() error {
 }
 
 func (d *Device) setToken() error {
+	httpMu.Lock()
+	defer httpMu.Unlock()
+
 	for _, url := range d.Controllers {
 		err := d.setBaseURL(url.String(), DefaultDeviceID)
 		if err != nil {

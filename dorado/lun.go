@@ -22,7 +22,7 @@ type LUN struct {
 	ALLOCTYPE                   string `json:"ALLOCTYPE"`
 	ASSOCIATEMETADATA           string `json:"ASSOCIATEMETADATA"`
 	CAPABILITY                  string `json:"CAPABILITY"`
-	CAPACITY                    string `json:"CAPACITY"`
+	CAPACITY                    int    `json:"CAPACITY,string"`
 	CAPACITYALARMLEVEL          string `json:"CAPACITYALARMLEVEL"`
 	CLONEIDS                    string `json:"CLONEIDS"`
 	COMPRESSION                 string `json:"COMPRESSION"`
@@ -44,7 +44,7 @@ type LUN struct {
 	IOPRIORITY                  string `json:"IOPRIORITY"`
 	ISADD2LUNGROUP              bool   `json:"ISADD2LUNGROUP,string"`
 	ISCHECKZEROPAGE             string `json:"ISCHECKZEROPAGE"`
-	ISCLONE                     string `json:"ISCLONE"`
+	ISCLONE                     bool   `json:"ISCLONE,string"`
 	ISCSITHINLUNTHRESHOLD       string `json:"ISCSITHINLUNTHRESHOLD"`
 	LUNCOPYIDS                  string `json:"LUNCOPYIDS"`
 	LUNMigrationOrigin          string `json:"LUNMigrationOrigin"`
@@ -86,7 +86,7 @@ type AssociateMetaData struct {
 	HostLUNID int `json:"HostLUNID"`
 }
 
-// ParamCreateLUN is parameter of CreateLUN
+// ParamCreateLUN is parameter for CreateLUN
 type ParamCreateLUN struct {
 	WRITEPOLICY        string `json:"WRITEPOLICY"`
 	PREFETCHVALUE      string `json:"PREFETCHVALUE"`
@@ -99,6 +99,13 @@ type ParamCreateLUN struct {
 	NAME               string `json:"NAME"`
 	WORKLOADTYPEID     string `json:"WORKLOADTYPEID"`
 	PREFETCHPOLICY     string `json:"PREFETCHPOLICY"`
+}
+
+// ParamCreateCloneLUN is parameter for CreateCloneLUN
+type ParamCreateCloneLUN struct {
+	NAME          string `json:"NAME"`
+	CLONESOURCEID int    `json:"CLONESOURCEID"`
+	ISCLONE       bool   `json:"ISCLONE"`
 }
 
 // PrefixVolumeDescription is prefix of volume Description
@@ -157,7 +164,6 @@ func (d *Device) GetLUN(ctx context.Context, lunID int) (*LUN, error) {
 
 // CreateLUN create lun object
 func (d *Device) CreateLUN(ctx context.Context, u uuid.UUID, capacityGB int, storagePoolName string) (*LUN, error) {
-	// low level API
 	storagePools, err := d.GetStoragePools(ctx, NewSearchQueryName(storagePoolName))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get storagepool: %w", err)
@@ -167,8 +173,6 @@ func (d *Device) CreateLUN(ctx context.Context, u uuid.UUID, capacityGB int, sto
 		return nil, errors.New("found multiple storagepool in same name")
 	}
 	storagePoolID := storagePools[0].ID
-
-	spath := "/lun"
 
 	p := ParamCreateLUN{
 		NAME:               EncodeLunName(u),
@@ -183,7 +187,14 @@ func (d *Device) CreateLUN(ctx context.Context, u uuid.UUID, capacityGB int, sto
 		WORKLOADTYPEID:     "0",
 		PREFETCHPOLICY:     "3",
 	}
-	jb, err := json.Marshal(p)
+
+	return d.createLUN(ctx, p)
+}
+
+func (d *Device) createLUN(ctx context.Context, param interface{}) (*LUN, error) {
+	spath := "/lun"
+
+	jb, err := json.Marshal(param)
 	if err != nil {
 		return nil, fmt.Errorf(ErrCreatePostValue+": %w", err)
 	}
@@ -215,13 +226,13 @@ func (d *Device) CreateLUNWithWait(ctx context.Context, u uuid.UUID, capacityGB 
 		}
 
 		if isReady == true {
-			break
+			return d.GetLUN(ctx, lun.ID)
 		}
 
 		time.Sleep(1 * time.Second)
 	}
 
-	return d.GetLUN(ctx, lun.ID)
+	return nil, ErrTimeoutWait
 }
 
 func (d *Device) lunIsReady(ctx context.Context, LUNID int) (bool, error) {
@@ -230,7 +241,9 @@ func (d *Device) lunIsReady(ctx context.Context, LUNID int) (bool, error) {
 		return false, fmt.Errorf("failed to get LUN (ID: %d): %w", LUNID, err)
 	}
 
-	if lun.HEALTHSTATUS == strconv.Itoa(StatusHealth) && lun.RUNNINGSTATUS == strconv.Itoa(StatusVolumeReady) {
+	if lun.HEALTHSTATUS == strconv.Itoa(StatusHealth) &&
+		lun.RUNNINGSTATUS == strconv.Itoa(StatusVolumeReady) &&
+		lun.ISCLONE == false {
 		return true, nil
 	}
 
@@ -336,4 +349,52 @@ func (d *Device) GetHostLUNID(ctx context.Context, lunID, hostID int) (int, erro
 	}
 
 	return 0, fmt.Errorf("LUN (ID: %d) is not associated host (ID: %d)", lunID, hostID)
+}
+
+// CreateCloneLUN create clone LUN
+func (d *Device) CreateCloneLUN(ctx context.Context, lunID int, lunName uuid.UUID) (*LUN, error) {
+	param := ParamCreateCloneLUN{
+		CLONESOURCEID: lunID,
+		ISCLONE:       true,
+		NAME:          EncodeLunName(lunName),
+	}
+
+	lun, err := d.createLUN(ctx, param)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create LUN: %w", err)
+	}
+
+	return lun, nil
+}
+
+// SplitCloneLUN start to split LUN Clone
+func (d *Device) SplitCloneLUN(ctx context.Context, cloneLUNID int) error {
+	spath := "/lunclone_split_switch"
+	param := struct {
+		ID          int  `json:"ID"`
+		SPLITACTION int  `json:"SPLITACTION"`
+		ISCLONE     bool `json:"ISCLONE"`
+		SPLITSPEED  int  `json:"SPLITSPEED"`
+	}{
+		ID:          cloneLUNID,
+		SPLITACTION: 1,
+		ISCLONE:     true,
+		SPLITSPEED:  4,
+	}
+	jb, err := json.Marshal(param)
+	if err != nil {
+		return fmt.Errorf(ErrCreatePostValue+": %w", err)
+	}
+
+	req, err := d.newRequest(ctx, "PUT", spath, bytes.NewBuffer(jb))
+	if err != nil {
+		return fmt.Errorf(ErrCreateRequest+": %w", err)
+	}
+
+	var i interface{} // this endpoint return N/A
+	if err = d.requestWithRetry(req, i, false); err != nil {
+		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
+	}
+
+	return nil
 }

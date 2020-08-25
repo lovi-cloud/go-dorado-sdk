@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -49,7 +48,7 @@ func (d *Device) GetLUNCopys(ctx context.Context, query *SearchQuery) ([]LunCopy
 	}
 
 	if len(lunCopys) == 0 {
-		return nil, ErrLunNotFound
+		return nil, ErrLunCopyNotFound
 	}
 
 	return lunCopys, nil
@@ -152,7 +151,7 @@ func (d *Device) StartLUNCopy(ctx context.Context, luncopyID int) error {
 // StartLUNCopyWithWait start luncopy and wait to copy
 func (d *Device) StartLUNCopyWithWait(ctx context.Context, luncopyID int, timeoutCount int) error {
 	if timeoutCount == 0 {
-		timeoutCount = DefaultLUNCopyTimeoutSecond
+		timeoutCount = DefaultCopyTimeoutSecond
 	}
 
 	err := d.StartLUNCopy(ctx, luncopyID)
@@ -174,7 +173,7 @@ func (d *Device) StartLUNCopyWithWait(ctx context.Context, luncopyID int, timeou
 		time.Sleep(1 * time.Second)
 	}
 
-	return errors.New("timeout LUN copy")
+	return ErrTimeoutWait
 }
 
 func (d *Device) luncopyIsDone(ctx context.Context, luncopyID int) (bool, error) {

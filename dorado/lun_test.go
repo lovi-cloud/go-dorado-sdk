@@ -83,7 +83,7 @@ func TestDevice_GetLUNs(t *testing.T) {
 		{
 			ALLOCCAPACITY:               "0",
 			ALLOCTYPE:                   "1",
-			CAPACITY:                    "2097152",
+			CAPACITY:                    2097152,
 			COMPRESSION:                 "0",
 			COMPRESSIONSAVEDCAPACITY:    "0",
 			COMPRESSIONSAVEDRATIO:       "0",
@@ -100,7 +100,7 @@ func TestDevice_GetLUNs(t *testing.T) {
 			IOPRIORITY:                  "1",
 			ISADD2LUNGROUP:              false,
 			ISCHECKZEROPAGE:             "false",
-			ISCLONE:                     "true",
+			ISCLONE:                     true,
 			ISCSITHINLUNTHRESHOLD:       "90",
 			MIRRORPOLICY:                "1",
 			MIRRORTYPE:                  "0",

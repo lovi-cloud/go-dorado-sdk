@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -42,7 +43,6 @@ func (c *Client) CreateVolumeFromSource(ctx context.Context, name uuid.UUID, cap
 	if err != nil {
 		return nil, fmt.Errorf("failed to crteate lun from source in local device: %w", err)
 	}
-
 	remoteLun, err := c.RemoteDevice.CreateLUNFromSource(ctx, source.REMOTEOBJID, name, capacityGB, storagePoolName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to crteate lun from source in remote device: %w", err)
@@ -56,9 +56,54 @@ func (c *Client) CreateVolumeFromSource(ctx context.Context, name uuid.UUID, cap
 	return hyperMetroPair, nil
 }
 
-// CreateLUNFromSource create lun from source lun.
+// CreateLUNFromSource create lun from source lun
 // low level function for CreateVolumeFromSource
 func (d *Device) CreateLUNFromSource(ctx context.Context, sourceLUNID int, name uuid.UUID, capacityGB int, storagePoolName string) (*LUN, error) {
+	return d.CreateLUNFromSourceByLUNClone(ctx, sourceLUNID, name, capacityGB)
+}
+
+// CreateLUNFromSourceByLUNClone create lun from source lun by LUN Clone.
+func (d *Device) CreateLUNFromSourceByLUNClone(ctx context.Context, sourceLUNID int, name uuid.UUID, capacityGB int) (*LUN, error) {
+	cloneLUN, err := d.CreateCloneLUN(ctx, sourceLUNID, name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create clone LUN: %w", err)
+	}
+	defer func() {
+		if err != nil {
+			if err := d.DeleteLUN(ctx, cloneLUN.ID); err != nil {
+				d.Logger.Printf("failed to delete LUN: %v", err)
+			}
+		}
+	}()
+
+	if cloneLUN.CAPACITY < capacityGB {
+		if err := d.ExpandLUN(ctx, cloneLUN.ID, capacityGB); err != nil {
+			return nil, fmt.Errorf("failed to expand LUN: %w", err)
+		}
+	}
+
+	if err := d.SplitCloneLUN(ctx, cloneLUN.ID); err != nil {
+		return nil, fmt.Errorf("failed to split clone LUN: %w", err)
+	}
+
+	for i := 0; i < DefaultCopyTimeoutSecond; i++ {
+		isReady, err := d.lunIsReady(ctx, cloneLUN.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to wait that LUN is ready: %w", err)
+		}
+
+		if isReady == true {
+			return d.GetLUN(ctx, cloneLUN.ID)
+		}
+
+		time.Sleep(1 * time.Second)
+	}
+
+	return nil, ErrTimeoutWait
+}
+
+// CreateLUNFromSourceByLUNCopy create lun from source lun by LUN Copy.
+func (d *Device) CreateLUNFromSourceByLUNCopy(ctx context.Context, sourceLUNID int, name uuid.UUID, capacityGB int, storagePoolName string) (*LUN, error) {
 	snapshotName := uuid.NewV4()
 
 	snapshot, err := d.CreateSnapshotWithWait(ctx, sourceLUNID, snapshotName, "")
