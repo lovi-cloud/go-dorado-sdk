@@ -151,7 +151,7 @@ func (d *Device) StartLUNCopy(ctx context.Context, luncopyID int) error {
 // StartLUNCopyWithWait start luncopy and wait to copy
 func (d *Device) StartLUNCopyWithWait(ctx context.Context, luncopyID int, timeoutCount int) error {
 	if timeoutCount == 0 {
-		timeoutCount = DefaultLUNCopyTimeoutSecond
+		timeoutCount = DefaultCopyTimeoutSecond
 	}
 
 	err := d.StartLUNCopy(ctx, luncopyID)

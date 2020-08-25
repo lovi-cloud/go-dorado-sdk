@@ -86,8 +86,8 @@ var (
 
 // Default values
 const (
-	DefaultLUNCopyTimeoutSecond = 180
-	DefaultDeviceID             = "xx"
+	DefaultCopyTimeoutSecond = 180
+	DefaultDeviceID          = "xx"
 )
 
 // AssociateParam is parameter of associate functions

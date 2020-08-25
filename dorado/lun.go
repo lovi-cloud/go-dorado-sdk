@@ -44,7 +44,7 @@ type LUN struct {
 	IOPRIORITY                  string `json:"IOPRIORITY"`
 	ISADD2LUNGROUP              bool   `json:"ISADD2LUNGROUP,string"`
 	ISCHECKZEROPAGE             string `json:"ISCHECKZEROPAGE"`
-	ISCLONE                     string `json:"ISCLONE"`
+	ISCLONE                     bool   `json:"ISCLONE,string"`
 	ISCSITHINLUNTHRESHOLD       string `json:"ISCSITHINLUNTHRESHOLD"`
 	LUNCOPYIDS                  string `json:"LUNCOPYIDS"`
 	LUNMigrationOrigin          string `json:"LUNMigrationOrigin"`
@@ -86,7 +86,7 @@ type AssociateMetaData struct {
 	HostLUNID int `json:"HostLUNID"`
 }
 
-// ParamCreateLUN is parameter of CreateLUN
+// ParamCreateLUN is parameter for CreateLUN
 type ParamCreateLUN struct {
 	WRITEPOLICY        string `json:"WRITEPOLICY"`
 	PREFETCHVALUE      string `json:"PREFETCHVALUE"`
@@ -99,10 +99,13 @@ type ParamCreateLUN struct {
 	NAME               string `json:"NAME"`
 	WORKLOADTYPEID     string `json:"WORKLOADTYPEID"`
 	PREFETCHPOLICY     string `json:"PREFETCHPOLICY"`
+}
 
-	// for CreateCloneLUN
-	CLONESOURCEID int  `json:"CLONESOURCEID"`
-	ISCLONE       bool `json:"ISCLONE"`
+// ParamCreateCloneLUN is parameter for CreateCloneLUN
+type ParamCreateCloneLUN struct {
+	NAME          string `json:"NAME"`
+	CLONESOURCEID int    `json:"CLONESOURCEID"`
+	ISCLONE       bool   `json:"ISCLONE"`
 }
 
 // PrefixVolumeDescription is prefix of volume Description
@@ -188,7 +191,7 @@ func (d *Device) CreateLUN(ctx context.Context, u uuid.UUID, capacityGB int, sto
 	return d.createLUN(ctx, p)
 }
 
-func (d *Device) createLUN(ctx context.Context, param ParamCreateLUN) (*LUN, error) {
+func (d *Device) createLUN(ctx context.Context, param interface{}) (*LUN, error) {
 	spath := "/lun"
 
 	jb, err := json.Marshal(param)
@@ -238,7 +241,9 @@ func (d *Device) lunIsReady(ctx context.Context, LUNID int) (bool, error) {
 		return false, fmt.Errorf("failed to get LUN (ID: %d): %w", LUNID, err)
 	}
 
-	if lun.HEALTHSTATUS == strconv.Itoa(StatusHealth) && lun.RUNNINGSTATUS == strconv.Itoa(StatusVolumeReady) {
+	if lun.HEALTHSTATUS == strconv.Itoa(StatusHealth) &&
+		lun.RUNNINGSTATUS == strconv.Itoa(StatusVolumeReady) &&
+		lun.ISCLONE == false {
 		return true, nil
 	}
 
@@ -347,11 +352,11 @@ func (d *Device) GetHostLUNID(ctx context.Context, lunID, hostID int) (int, erro
 }
 
 // CreateCloneLUN create clone LUN
-func (d *Device) CreateCloneLUN(ctx context.Context, lunID int, lunName string) (*LUN, error) {
-	param := ParamCreateLUN{
+func (d *Device) CreateCloneLUN(ctx context.Context, lunID int, lunName uuid.UUID) (*LUN, error) {
+	param := ParamCreateCloneLUN{
 		CLONESOURCEID: lunID,
 		ISCLONE:       true,
-		NAME:          lunName,
+		NAME:          EncodeLunName(lunName),
 	}
 
 	lun, err := d.createLUN(ctx, param)
