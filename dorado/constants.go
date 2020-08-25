@@ -67,6 +67,7 @@ var (
 	ErrInitiatorNotFound        = errors.New("initiator is not found")
 	ErrLunNotFound              = errors.New("LUN is not found")
 	ErrLunGroupNotFound         = errors.New("LUN Group is not found")
+	ErrLunCopyNotFound          = errors.New("LUN Copy is not found")
 	ErrMappingViewNotFound      = errors.New("mapping view is not found")
 	ErrPortGroupNotFound        = errors.New("port group is not found")
 	ErrSnapshotNotFound         = errors.New("snapshot is not found")

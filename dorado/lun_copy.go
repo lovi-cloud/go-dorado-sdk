@@ -48,7 +48,7 @@ func (d *Device) GetLUNCopys(ctx context.Context, query *SearchQuery) ([]LunCopy
 	}
 
 	if len(lunCopys) == 0 {
-		return nil, ErrLunNotFound
+		return nil, ErrLunCopyNotFound
 	}
 
 	return lunCopys, nil
