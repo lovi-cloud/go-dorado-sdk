@@ -74,6 +74,7 @@ var (
 	ErrTargetPortNotFound       = errors.New("target port is not found")
 
 	ErrUnAuthorized = errors.New("failed to authorized token")
+	ErrTimeoutWait  = errors.New("timeout to wait")
 
 	// parent Error
 	ErrCreateRequest    = "failed to create request"

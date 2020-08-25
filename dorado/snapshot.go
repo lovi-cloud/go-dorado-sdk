@@ -146,13 +146,13 @@ func (d *Device) CreateSnapshotWithWait(ctx context.Context, lunID int, name uui
 		}
 
 		if isReady == true {
-			break
+			return d.GetSnapshot(ctx, snapshot.ID)
 		}
 
 		time.Sleep(1 * time.Second)
 	}
 
-	return d.GetSnapshot(ctx, snapshot.ID)
+	return nil, ErrTimeoutWait
 }
 
 func (d *Device) snapshotIsReady(ctx context.Context, snapshotID int) (bool, error) {

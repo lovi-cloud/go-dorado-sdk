@@ -223,13 +223,13 @@ func (d *Device) CreateLUNWithWait(ctx context.Context, u uuid.UUID, capacityGB 
 		}
 
 		if isReady == true {
-			break
+			return d.GetLUN(ctx, lun.ID)
 		}
 
 		time.Sleep(1 * time.Second)
 	}
 
-	return d.GetLUN(ctx, lun.ID)
+	return nil, ErrTimeoutWait
 }
 
 func (d *Device) lunIsReady(ctx context.Context, LUNID int) (bool, error) {

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strconv"
 	"time"
@@ -174,7 +173,7 @@ func (d *Device) StartLUNCopyWithWait(ctx context.Context, luncopyID int, timeou
 		time.Sleep(1 * time.Second)
 	}
 
-	return errors.New("timeout LUN copy")
+	return ErrTimeoutWait
 }
 
 func (d *Device) luncopyIsDone(ctx context.Context, luncopyID int) (bool, error) {
