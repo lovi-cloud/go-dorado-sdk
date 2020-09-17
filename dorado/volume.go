@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-
 	uuid "github.com/satori/go.uuid"
+	"golang.org/x/sync/errgroup"
 )
 
 // CreateVolumeRaw create blank HyperMetroPair
@@ -39,16 +39,32 @@ func (c *Client) CreateVolumeFromSource(ctx context.Context, name uuid.UUID, cap
 		return nil, fmt.Errorf("failed to get source HyperMetroPair: %w", err)
 	}
 
-	localLun, err := c.LocalDevice.CreateLUNFromSource(ctx, source.LOCALOBJID, name, capacityGB, storagePoolName)
-	if err != nil {
-		return nil, fmt.Errorf("failed to crteate lun from source in local device: %w", err)
-	}
-	remoteLun, err := c.RemoteDevice.CreateLUNFromSource(ctx, source.REMOTEOBJID, name, capacityGB, storagePoolName)
-	if err != nil {
-		return nil, fmt.Errorf("failed to crteate lun from source in remote device: %w", err)
+	var localLUNID, remoteLUNID int
+	eg := errgroup.Group{}
+	eg.Go(func() error {
+		localLun, err := c.LocalDevice.CreateLUNFromSource(ctx, source.LOCALOBJID, name, capacityGB, storagePoolName)
+		if err != nil {
+			return fmt.Errorf("failed to crteate lun from source in local device: %w", err)
+		}
+
+		localLUNID = localLun.ID
+		return nil
+	})
+	eg.Go(func() error {
+		remoteLun, err := c.RemoteDevice.CreateLUNFromSource(ctx, source.REMOTEOBJID, name, capacityGB, storagePoolName)
+		if err != nil {
+			return fmt.Errorf("failed to crteate lun from source in remote device: %w", err)
+		}
+
+		remoteLUNID = remoteLun.ID
+		return nil
+	})
+
+	if err := eg.Wait(); err != nil {
+		return nil, fmt.Errorf("failed to create lun from source: %w", err)
 	}
 
-	hyperMetroPair, err := c.CreateHyperMetroPair(ctx, hyperMetroDomainID, localLun.ID, remoteLun.ID)
+	hyperMetroPair, err := c.CreateHyperMetroPair(ctx, hyperMetroDomainID, localLUNID, remoteLUNID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create HyperMetroPair from source: %w", err)
 	}
