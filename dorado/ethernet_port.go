@@ -101,6 +101,10 @@ func (d *Device) GetPortalIPAddresses(ctx context.Context, portgroupID int) ([]s
 		portalIPs = append(portalIPs, ethernetport.IPV4ADDR)
 	}
 
+	if len(portalIPs) == 0 {
+		return nil, errors.New("portal ip addresses is not found")
+	}
+
 	return portalIPs, nil
 }
 
