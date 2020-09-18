@@ -51,7 +51,7 @@ func (d *Device) GetHosts(ctx context.Context, query *SearchQuery) ([]Host, erro
 	req = AddSearchQuery(req, query)
 
 	var hosts []Host
-	if err = d.requestWithRetry(req, &hosts, false); err != nil {
+	if err = d.requestWithRetry(req, &hosts, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -72,7 +72,7 @@ func (d *Device) GetHost(ctx context.Context, hostID int) (*Host, error) {
 	}
 
 	host := &Host{}
-	if err = d.requestWithRetry(req, host, false); err != nil {
+	if err = d.requestWithRetry(req, host, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -103,7 +103,7 @@ func (d *Device) CreateHost(ctx context.Context, hostname string) (*Host, error)
 	}
 
 	host := &Host{}
-	if err = d.requestWithRetry(req, host, false); err != nil {
+	if err = d.requestWithRetry(req, host, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -120,7 +120,7 @@ func (d *Device) DeleteHost(ctx context.Context, hostID int) error {
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = d.requestWithRetry(req, i, false); err != nil {
+	if err = d.requestWithRetry(req, i, DefaultHTTPRetryCount); err != nil {
 		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 

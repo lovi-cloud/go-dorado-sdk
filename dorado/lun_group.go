@@ -33,7 +33,7 @@ func (d *Device) GetLunGroups(ctx context.Context, query *SearchQuery) ([]LunGro
 	req = AddSearchQuery(req, query)
 
 	var lunGroups []LunGroup
-	if err = d.requestWithRetry(req, &lunGroups, false); err != nil {
+	if err = d.requestWithRetry(req, &lunGroups, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -54,7 +54,7 @@ func (d *Device) GetLunGroup(ctx context.Context, lungroupID int) (*LunGroup, er
 	}
 
 	lunGroup := &LunGroup{}
-	if err = d.requestWithRetry(req, lunGroup, false); err != nil {
+	if err = d.requestWithRetry(req, lunGroup, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -84,7 +84,7 @@ func (d *Device) CreateLunGroup(ctx context.Context, hostname string) (*LunGroup
 	}
 
 	lunGroup := &LunGroup{}
-	if err = d.requestWithRetry(req, lunGroup, false); err != nil {
+	if err = d.requestWithRetry(req, lunGroup, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -101,7 +101,7 @@ func (d *Device) DeleteLunGroup(ctx context.Context, lungroupID int) error {
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = d.requestWithRetry(req, i, false); err != nil {
+	if err = d.requestWithRetry(req, i, DefaultHTTPRetryCount); err != nil {
 		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -127,7 +127,7 @@ func (d *Device) AssociateLun(ctx context.Context, lungroupID, lunID int) error 
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = d.requestWithRetry(req, i, false); err != nil {
+	if err = d.requestWithRetry(req, i, DefaultHTTPRetryCount); err != nil {
 		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -150,7 +150,7 @@ func (d *Device) DisAssociateLun(ctx context.Context, lungroupID, lunID int) err
 	req = AddAssociateParam(req, param)
 
 	var i interface{} // this endpoint return N/A
-	if err = d.requestWithRetry(req, i, false); err != nil {
+	if err = d.requestWithRetry(req, i, DefaultHTTPRetryCount); err != nil {
 		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -168,7 +168,7 @@ func (d *Device) GetAssociateLunGroups(ctx context.Context, query *SearchQuery) 
 	req = AddSearchQuery(req, query)
 
 	var lunGroups []LunGroup
-	if err = d.requestWithRetry(req, &lunGroups, false); err != nil {
+	if err = d.requestWithRetry(req, &lunGroups, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 

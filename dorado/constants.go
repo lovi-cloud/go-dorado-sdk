@@ -8,8 +8,9 @@ import (
 
 // this const value drip by https://github.com/Huawei/OpenStack_Driver/blob/master/Cinder/Queens/constants.py
 const (
-	CapacityUnit  = 1024 * 1024 * 2 // 2 is hypermetro capacity NOTE(whywaita): honnmani?
-	MaxNameLength = 31
+	CapacityUnit    = 1024 * 1024 * 2 // 2 is hypermetro capacity NOTE(whywaita): honnmani?
+	MaxNameLength   = 31
+	DefaultDeviceID = "xx"
 )
 
 // Object Type Numbers
@@ -86,9 +87,9 @@ var (
 )
 
 // Default values
-const (
+var (
 	DefaultCopyTimeoutSecond = 180
-	DefaultDeviceID          = "xx"
+	DefaultHTTPRetryCount    = 10
 )
 
 // AssociateParam is parameter of associate functions

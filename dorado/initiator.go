@@ -47,7 +47,7 @@ func (d *Device) GetInitiators(ctx context.Context, query *SearchQuery) ([]Initi
 	req = AddSearchQuery(req, query)
 
 	var initiators []Initiator
-	if err = d.requestWithRetry(req, &initiators, false); err != nil {
+	if err = d.requestWithRetry(req, &initiators, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -68,7 +68,7 @@ func (d *Device) GetInitiator(ctx context.Context, iqn string) (*Initiator, erro
 	}
 
 	initiators := &Initiator{}
-	if err = d.requestWithRetry(req, initiators, false); err != nil {
+	if err = d.requestWithRetry(req, initiators, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -98,7 +98,7 @@ func (d *Device) CreateInitiator(ctx context.Context, iqn string) (*Initiator, e
 	}
 
 	initiator := &Initiator{}
-	if err = d.requestWithRetry(req, initiator, false); err != nil {
+	if err = d.requestWithRetry(req, initiator, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -115,7 +115,7 @@ func (d *Device) DeleteInitiator(ctx context.Context, iqn string) error {
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = d.requestWithRetry(req, i, false); err != nil {
+	if err = d.requestWithRetry(req, i, DefaultHTTPRetryCount); err != nil {
 		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -146,7 +146,7 @@ func (d *Device) UpdateInitiator(ctx context.Context, iqn string, initiatorParam
 	}
 
 	initiator := &Initiator{}
-	if err = d.requestWithRetry(req, initiator, false); err != nil {
+	if err = d.requestWithRetry(req, initiator, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 

@@ -49,14 +49,14 @@ func (e ErrorResp) Error() error {
 
 // requestWithRetry do HTTP Request and retry if return UnAuthorized token.
 // set false in retried when call from outer.
-func (d *Device) requestWithRetry(req *http.Request, out interface{}, retried bool) error {
+func (d *Device) requestWithRetry(req *http.Request, out interface{}, retryCount int) error {
 	resp, err := d.request(req)
 	if err != nil {
 		return fmt.Errorf("failed to request: %w", err)
 	}
 
 	err = decodeBody(resp, out, d.Logger)
-	if err == ErrUnAuthorized && retried == false {
+	if err == ErrUnAuthorized && retryCount > 0 {
 		// retry after refresh token
 		// need update iBaseToken and ismsession in Cookie
 		err = d.setToken()
@@ -83,7 +83,7 @@ func (d *Device) requestWithRetry(req *http.Request, out interface{}, retried bo
 			return fmt.Errorf("failed to create new http request: %w", err)
 		}
 
-		return d.requestWithRetry(newReq, out, true)
+		return d.requestWithRetry(newReq, out, retryCount-1)
 	}
 
 	if err != nil {

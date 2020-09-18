@@ -134,7 +134,7 @@ func (d *Device) GetLUNs(ctx context.Context, query *SearchQuery) ([]LUN, error)
 	req = AddSearchQuery(req, query)
 
 	var luns []LUN
-	if err = d.requestWithRetry(req, &luns, false); err != nil {
+	if err = d.requestWithRetry(req, &luns, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -155,7 +155,7 @@ func (d *Device) GetLUN(ctx context.Context, lunID int) (*LUN, error) {
 	}
 
 	lun := &LUN{}
-	if err = d.requestWithRetry(req, lun, false); err != nil {
+	if err = d.requestWithRetry(req, lun, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -204,7 +204,7 @@ func (d *Device) createLUN(ctx context.Context, param interface{}) (*LUN, error)
 	}
 
 	lun := &LUN{}
-	if err = d.requestWithRetry(req, lun, false); err != nil {
+	if err = d.requestWithRetry(req, lun, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -259,7 +259,7 @@ func (d *Device) DeleteLUN(ctx context.Context, lunID int) error {
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = d.requestWithRetry(req, i, false); err != nil {
+	if err = d.requestWithRetry(req, i, DefaultHTTPRetryCount); err != nil {
 		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -289,7 +289,7 @@ func (d *Device) ExpandLUN(ctx context.Context, lunID int, newLunSizeGb int) err
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = d.requestWithRetry(req, i, false); err != nil {
+	if err = d.requestWithRetry(req, i, DefaultHTTPRetryCount); err != nil {
 		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -307,7 +307,7 @@ func (d *Device) GetAssociateLUNs(ctx context.Context, query *SearchQuery) ([]LU
 	req = AddSearchQuery(req, query)
 
 	var luns []LUN
-	if err = d.requestWithRetry(req, &luns, false); err != nil {
+	if err = d.requestWithRetry(req, &luns, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -392,7 +392,7 @@ func (d *Device) SplitCloneLUN(ctx context.Context, cloneLUNID int) error {
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = d.requestWithRetry(req, i, false); err != nil {
+	if err = d.requestWithRetry(req, i, DefaultHTTPRetryCount); err != nil {
 		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 

@@ -98,7 +98,7 @@ func (d *Device) GetStoragePools(ctx context.Context, query *SearchQuery) ([]Sto
 	req = AddSearchQuery(req, query)
 
 	var storagePools []StoragePools
-	if err = d.requestWithRetry(req, &storagePools, false); err != nil {
+	if err = d.requestWithRetry(req, &storagePools, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -118,7 +118,7 @@ func (d *Device) GetStoragePool(ctx context.Context, storagePoolID int) (*Storag
 	}
 
 	storagePool := &StoragePool{}
-	if err = d.requestWithRetry(req, storagePool, false); err != nil {
+	if err = d.requestWithRetry(req, storagePool, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 

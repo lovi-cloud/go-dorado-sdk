@@ -65,6 +65,17 @@ func TestDevice_UnAuthorizedRetry(t *testing.T) {
 }`)
 		},
 		func(w http.ResponseWriter, r *http.Request) {
+			// response auth error
+			fmt.Fprintln(w, `{
+  "data": [],
+  "error": {
+    "code": -401,
+    "description": "This operation fails to be performed because of the unauthorized REST.",
+	"suggestion": "Before performing this operation, ensure that REST is authorized."
+  }
+}`)
+		},
+		func(w http.ResponseWriter, r *http.Request) {
 			// response correct error (token refreshed)
 			fmt.Fprintln(w, `{
   "data": [

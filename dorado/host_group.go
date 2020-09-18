@@ -32,7 +32,7 @@ func (d *Device) GetHostGroups(ctx context.Context, query *SearchQuery) ([]HostG
 	req = AddSearchQuery(req, query)
 
 	var hostGroups []HostGroup
-	if err = d.requestWithRetry(req, &hostGroups, false); err != nil {
+	if err = d.requestWithRetry(req, &hostGroups, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -53,7 +53,7 @@ func (d *Device) GetHostGroup(ctx context.Context, hostgroupID int) (*HostGroup,
 	}
 
 	hostGroup := &HostGroup{}
-	if err = d.requestWithRetry(req, hostGroup, false); err != nil {
+	if err = d.requestWithRetry(req, hostGroup, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -80,7 +80,7 @@ func (d *Device) CreateHostGroup(ctx context.Context, hostname string) (*HostGro
 	}
 
 	hostGroup := &HostGroup{}
-	if err = d.requestWithRetry(req, hostGroup, false); err != nil {
+	if err = d.requestWithRetry(req, hostGroup, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -97,7 +97,7 @@ func (d *Device) DeleteHostGroup(ctx context.Context, hostGroupID int) error {
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = d.requestWithRetry(req, i, false); err != nil {
+	if err = d.requestWithRetry(req, i, DefaultHTTPRetryCount); err != nil {
 		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -124,7 +124,7 @@ func (d *Device) AssociateHost(ctx context.Context, hostgroupID, hostID int) err
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = d.requestWithRetry(req, i, false); err != nil {
+	if err = d.requestWithRetry(req, i, DefaultHTTPRetryCount); err != nil {
 		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -147,7 +147,7 @@ func (d *Device) DisAssociateHost(ctx context.Context, hostgroupID, hostID int) 
 	req.URL.RawQuery = q.Encode()
 
 	var i interface{} // this endpoint return N/A
-	if err = d.requestWithRetry(req, i, false); err != nil {
+	if err = d.requestWithRetry(req, i, DefaultHTTPRetryCount); err != nil {
 		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 

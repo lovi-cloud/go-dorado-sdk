@@ -60,7 +60,7 @@ func (d *Device) GetSystem(ctx context.Context) (*System, error) {
 	req.URL.Path = req.URL.Path + "/" // path.Join trim last slash
 
 	system := &System{}
-	if err = d.requestWithRetry(req, system, false); err != nil {
+	if err = d.requestWithRetry(req, system, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 

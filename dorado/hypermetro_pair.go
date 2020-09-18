@@ -72,7 +72,7 @@ func (c *Client) GetHyperMetroPairs(ctx context.Context, query *SearchQuery) ([]
 	req = AddSearchQuery(req, query)
 
 	var hyperMetroPairs []HyperMetroPair
-	if err = c.LocalDevice.requestWithRetry(req, &hyperMetroPairs, false); err != nil {
+	if err = c.LocalDevice.requestWithRetry(req, &hyperMetroPairs, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -93,7 +93,7 @@ func (c *Client) GetHyperMetroPair(ctx context.Context, hyperMetroPairID string)
 	}
 
 	hyperMetroPair := &HyperMetroPair{}
-	if err = c.LocalDevice.requestWithRetry(req, hyperMetroPair, false); err != nil {
+	if err = c.LocalDevice.requestWithRetry(req, hyperMetroPair, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -123,7 +123,7 @@ func (c *Client) CreateHyperMetroPair(ctx context.Context, hyperMetroDomainID st
 	}
 
 	hyperMetroPair := &HyperMetroPair{}
-	if err = c.LocalDevice.requestWithRetry(req, hyperMetroPair, false); err != nil {
+	if err = c.LocalDevice.requestWithRetry(req, hyperMetroPair, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -141,7 +141,7 @@ func (c *Client) DeleteHyperMetroPair(ctx context.Context, hyperMetroPairID stri
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = c.LocalDevice.requestWithRetry(req, i, false); err != nil {
+	if err = c.LocalDevice.requestWithRetry(req, i, DefaultHTTPRetryCount); err != nil {
 		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -169,7 +169,7 @@ func (c *Client) SuspendHyperMetroPair(ctx context.Context, hyperMetroPairID str
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = c.LocalDevice.requestWithRetry(req, i, false); err != nil {
+	if err = c.LocalDevice.requestWithRetry(req, i, DefaultHTTPRetryCount); err != nil {
 		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -197,7 +197,7 @@ func (c *Client) SyncHyperMetroPair(ctx context.Context, hyperMetroPairID string
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = c.LocalDevice.requestWithRetry(req, i, false); err != nil {
+	if err = c.LocalDevice.requestWithRetry(req, i, DefaultHTTPRetryCount); err != nil {
 		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 

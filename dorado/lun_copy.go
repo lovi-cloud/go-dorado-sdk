@@ -43,7 +43,7 @@ func (d *Device) GetLUNCopys(ctx context.Context, query *SearchQuery) ([]LunCopy
 	req = AddSearchQuery(req, query)
 
 	var lunCopys []LunCopy
-	if err = d.requestWithRetry(req, &lunCopys, false); err != nil {
+	if err = d.requestWithRetry(req, &lunCopys, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -64,7 +64,7 @@ func (d *Device) GetLUNCopy(ctx context.Context, lunCopyID int) (*LunCopy, error
 	}
 
 	lunCopys := &LunCopy{}
-	if err = d.requestWithRetry(req, lunCopys, false); err != nil {
+	if err = d.requestWithRetry(req, lunCopys, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -96,7 +96,7 @@ func (d *Device) CreateLUNCopy(ctx context.Context, sourceLUNID, targetLUNID int
 	}
 
 	lunCopy := &LunCopy{}
-	if err = d.requestWithRetry(req, lunCopy, false); err != nil {
+	if err = d.requestWithRetry(req, lunCopy, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -113,7 +113,7 @@ func (d *Device) DeleteLUNCopy(ctx context.Context, luncopyID int) error {
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = d.requestWithRetry(req, i, false); err != nil {
+	if err = d.requestWithRetry(req, i, DefaultHTTPRetryCount); err != nil {
 		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -141,7 +141,7 @@ func (d *Device) StartLUNCopy(ctx context.Context, luncopyID int) error {
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = d.requestWithRetry(req, i, false); err != nil {
+	if err = d.requestWithRetry(req, i, DefaultHTTPRetryCount); err != nil {
 		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
