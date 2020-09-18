@@ -72,7 +72,7 @@ func (d *Device) GetAssociatedEthernetPort(ctx context.Context, query *SearchQue
 	req = AddSearchQuery(req, query)
 
 	var etherports []EthernetPort
-	if err = d.requestWithRetry(req, &etherports, false); err != nil {
+	if err = d.requestWithRetry(req, &etherports, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 

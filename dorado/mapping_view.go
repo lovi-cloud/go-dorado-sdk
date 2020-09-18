@@ -31,7 +31,7 @@ func (d *Device) GetMappingViews(ctx context.Context, query *SearchQuery) ([]Map
 	req = AddSearchQuery(req, query)
 
 	mappingviews := []MappingView{}
-	if err = d.requestWithRetry(req, &mappingviews, false); err != nil {
+	if err = d.requestWithRetry(req, &mappingviews, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -52,7 +52,7 @@ func (d *Device) GetMappingView(ctx context.Context, mappingviewID int) (*Mappin
 	}
 
 	mappingview := &MappingView{}
-	if err = d.requestWithRetry(req, mappingview, false); err != nil {
+	if err = d.requestWithRetry(req, mappingview, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -80,7 +80,7 @@ func (d *Device) CreateMappingView(ctx context.Context, hostname string) (*Mappi
 	}
 
 	mappingview := &MappingView{}
-	if err = d.requestWithRetry(req, mappingview, false); err != nil {
+	if err = d.requestWithRetry(req, mappingview, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -97,7 +97,7 @@ func (d *Device) DeleteMappingView(ctx context.Context, mappingviewID int) error
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = d.requestWithRetry(req, i, false); err != nil {
+	if err = d.requestWithRetry(req, i, DefaultHTTPRetryCount); err != nil {
 		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -118,7 +118,7 @@ func (d *Device) AssociateMappingView(ctx context.Context, param AssociateParam)
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = d.requestWithRetry(req, i, false); err != nil {
+	if err = d.requestWithRetry(req, i, DefaultHTTPRetryCount); err != nil {
 		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -139,7 +139,7 @@ func (d *Device) DisAssociateMappingView(ctx context.Context, param AssociatePar
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = d.requestWithRetry(req, i, false); err != nil {
+	if err = d.requestWithRetry(req, i, DefaultHTTPRetryCount); err != nil {
 		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 	return nil

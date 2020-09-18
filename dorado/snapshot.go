@@ -66,7 +66,7 @@ func (d *Device) GetSnapshots(ctx context.Context, query *SearchQuery) ([]Snapsh
 	req = AddSearchQuery(req, query)
 
 	var snapshots []Snapshot
-	if err = d.requestWithRetry(req, &snapshots, false); err != nil {
+	if err = d.requestWithRetry(req, &snapshots, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -87,7 +87,7 @@ func (d *Device) GetSnapshot(ctx context.Context, snapshotID int) (*Snapshot, er
 	}
 
 	snapshots := &Snapshot{}
-	if err = d.requestWithRetry(req, snapshots, false); err != nil {
+	if err = d.requestWithRetry(req, snapshots, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -121,7 +121,7 @@ func (d *Device) CreateSnapshot(ctx context.Context, lunID int, name uuid.UUID, 
 	}
 
 	snapshot := &Snapshot{}
-	if err = d.requestWithRetry(req, snapshot, false); err != nil {
+	if err = d.requestWithRetry(req, snapshot, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -193,7 +193,7 @@ func (d *Device) DeleteSnapshot(ctx context.Context, snapshotID int) error {
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = d.requestWithRetry(req, i, false); err != nil {
+	if err = d.requestWithRetry(req, i, DefaultHTTPRetryCount); err != nil {
 		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -219,7 +219,7 @@ func (d *Device) ActivateSnapshot(ctx context.Context, snapshotID int) error {
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = d.requestWithRetry(req, i, false); err != nil {
+	if err = d.requestWithRetry(req, i, DefaultHTTPRetryCount); err != nil {
 		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -245,7 +245,7 @@ func (d *Device) StopSnapshot(ctx context.Context, snapshotID int) error {
 	}
 
 	var i interface{} // this endpoint return N/A
-	if err = d.requestWithRetry(req, i, false); err != nil {
+	if err = d.requestWithRetry(req, i, DefaultHTTPRetryCount); err != nil {
 		return fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 

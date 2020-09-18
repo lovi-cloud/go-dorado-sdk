@@ -25,7 +25,7 @@ func (d *Device) GetPortGroups(ctx context.Context, query *SearchQuery) ([]PortG
 	req = AddSearchQuery(req, query)
 
 	var portGroups []PortGroup
-	if err = d.requestWithRetry(req, &portGroups, false); err != nil {
+	if err = d.requestWithRetry(req, &portGroups, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -46,7 +46,7 @@ func (d *Device) GetPortGroup(ctx context.Context, portgroupID int) (*PortGroup,
 	}
 
 	portGroup := &PortGroup{}
-	if err = d.requestWithRetry(req, portGroup, false); err != nil {
+	if err = d.requestWithRetry(req, portGroup, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
@@ -68,7 +68,7 @@ func (d *Device) GetPortGroupsAssociate(ctx context.Context, mappingviewID int) 
 	req = AddAssociateParam(req, param)
 
 	var portGroups []PortGroup
-	if err = d.requestWithRetry(req, &portGroups, false); err != nil {
+	if err = d.requestWithRetry(req, &portGroups, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 

@@ -27,7 +27,7 @@ func (d *Device) GetTargetPort(ctx context.Context, query *SearchQuery) ([]Targe
 	req = AddSearchQuery(req, query)
 
 	var targetPorts []TargetPort
-	if err = d.requestWithRetry(req, &targetPorts, false); err != nil {
+	if err = d.requestWithRetry(req, &targetPorts, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 

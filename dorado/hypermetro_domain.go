@@ -41,7 +41,7 @@ func (d *Device) GetHyperMetroDomains(ctx context.Context, query *SearchQuery) (
 	req = AddSearchQuery(req, query)
 
 	var hyperMetroDomains []HyperMetroDomain
-	if err = d.requestWithRetry(req, &hyperMetroDomains, false); err != nil {
+	if err = d.requestWithRetry(req, &hyperMetroDomains, DefaultHTTPRetryCount); err != nil {
 		return nil, fmt.Errorf(ErrRequestWithRetry+": %w", err)
 	}
 
