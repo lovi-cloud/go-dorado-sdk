@@ -92,7 +92,7 @@ func (d *Device) CreateLUNFromSourceByLUNClone(ctx context.Context, sourceLUNID 
 		}
 	}()
 
-	if cloneLUN.CAPACITY < capacityGB {
+	if cloneLUN.CAPACITY < capacityGB*CapacityUnit {
 		if err := d.ExpandLUN(ctx, cloneLUN.ID, capacityGB); err != nil {
 			return nil, fmt.Errorf("failed to expand LUN: %w", err)
 		}
