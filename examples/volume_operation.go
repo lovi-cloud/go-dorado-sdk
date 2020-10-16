@@ -21,17 +21,96 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	if err := truncateAttachedDevice(client, ctx); err != nil {
-		log.Fatal(err)
-	}
+	fmt.Println(client)
 
 	fmt.Println("operation is done!")
 }
 
-func truncateAttachedDevice(client *dorado.Client, ctx context.Context) error {
+func truncateAllVolume(ctx context.Context, client *dorado.Client) error {
+	volumes, err := client.GetHyperMetroPairs(ctx, nil)
+	if err != nil && err != dorado.ErrHyperMetroPairNotFound {
+		return err
+	}
+
+	for _, v := range volumes {
+		fmt.Println(v.ID)
+		if err := client.DeleteVolume(ctx, v.ID); err != nil {
+			return err
+		}
+	}
+
+	llc, err := client.LocalDevice.GetLUNCopys(ctx, nil)
+	if err != nil && err != dorado.ErrLunCopyNotFound {
+		return err
+	}
+	for _, lc := range llc {
+		fmt.Println(lc.ID)
+		if err := client.LocalDevice.DeleteLUNCopy(ctx, lc.ID); err != nil {
+			return err
+		}
+	}
+
+	ls, err := client.LocalDevice.GetSnapshots(ctx, nil)
+	if err != nil && err != dorado.ErrSnapshotNotFound {
+		return err
+	}
+	for _, s := range ls {
+		fmt.Println(s.ID)
+		if err := client.LocalDevice.DeleteSnapshot(ctx, s.ID); err != nil {
+			return err
+		}
+	}
+
+	ll, err := client.LocalDevice.GetLUNs(ctx, nil)
+	if err != nil && err != dorado.ErrLunNotFound {
+		return err
+	}
+	for _, l := range ll {
+		fmt.Println(l.ID)
+		if err := client.LocalDevice.DeleteLUN(ctx, l.ID); err != nil {
+			return err
+		}
+	}
+
+	rlc, err := client.RemoteDevice.GetLUNCopys(ctx, nil)
+	if err != nil && err != dorado.ErrLunCopyNotFound {
+		return err
+	}
+	for _, lc := range rlc {
+		fmt.Println(lc.ID)
+		if err := client.RemoteDevice.DeleteLUNCopy(ctx, lc.ID); err != nil {
+			return err
+		}
+	}
+
+	rs, err := client.RemoteDevice.GetSnapshots(ctx, nil)
+	if err != nil && err != dorado.ErrSnapshotNotFound {
+		return err
+	}
+	for _, s := range rs {
+		fmt.Println(s.ID)
+		if err := client.RemoteDevice.DeleteSnapshot(ctx, s.ID); err != nil {
+			return err
+		}
+	}
+
+	rl, err := client.RemoteDevice.GetLUNs(ctx, nil)
+	if err != nil && err != dorado.ErrLunNotFound {
+		return err
+	}
+	for _, l := range rl {
+		fmt.Println(l.ID)
+		if err := client.RemoteDevice.DeleteLUN(ctx, l.ID); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func truncateAttachedDevice(ctx context.Context, client *dorado.Client) error {
 	// local
-	_, host, err := client.LocalDevice.GetHostGroupForce(ctx, "hv001")
+	_, host, err := client.LocalDevice.GetHostGroupForce(ctx, "isucn0001")
 	if err != nil {
 		return err
 	}
