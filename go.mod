@@ -1,4 +1,4 @@
-module github.com/whywaita/go-dorado-sdk
+module github.com/lovi-cloud/go-dorado-sdk
 
 go 1.14
 

@@ -6,7 +6,7 @@
 package main
 
 import (
-    "github.com/whywaita/go-dorado-sdk/dorado"
+    "github.com/lovi-cloud/go-dorado-sdk/dorado"
 )
 
 func main() {

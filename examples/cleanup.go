@@ -8,9 +8,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/whywaita/go-dorado-sdk/dorado"
-
-	"github.com/whywaita/go-dorado-sdk/example/lib"
+	"github.com/lovi-cloud/go-dorado-sdk/dorado"
+	"github.com/lovi-cloud/go-dorado-sdk/example/lib"
 )
 
 func main() {

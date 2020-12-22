@@ -5,7 +5,7 @@ package lib
 import (
 	"context"
 
-	"github.com/whywaita/go-dorado-sdk/dorado"
+	"github.com/lovi-cloud/go-dorado-sdk/dorado"
 )
 
 // input param
