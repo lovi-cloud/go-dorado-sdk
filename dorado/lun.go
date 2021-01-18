@@ -115,8 +115,9 @@ var PrefixVolumeDescription = "volume-"
 func EncodeLunName(u uuid.UUID) string {
 	// MAX LUN name length is 31, but uuid
 	// this function binding by huawei_utils.encode_name(id) in OpenStack cinder-driver.
+	// ref: https://github.com/openstack/cinder/blob/006a4f48174c04c8720175f69271a317906867e9/cinder/volume/drivers/huawei/huawei_utils.py#L38
 	values := strings.Split(u.String(), "-")
-	prefix := "w-" + values[0] + "-" // TODO(whywaita): delete w- later.
+	prefix := values[0] + "-"
 
 	hash := md5.Sum(u.Bytes())
 	name := prefix + hex.EncodeToString(hash[:])[:MaxNameLength-len(prefix)]
