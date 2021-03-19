@@ -3,6 +3,10 @@
 go-dorado-sdk is Golang SDK for Huawei OceanStor Dorado.
 It provides operationally from Golang.
 
+## Support Products
+
+- OceanStor Dorado V3
+
 ## Usage
 
 - Enable REST API
